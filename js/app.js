@@ -125,34 +125,56 @@ function registerRoutes() {
   });
 }
 
+function isRouteActive(itemRoute, path) {
+  return path === itemRoute ||
+    (itemRoute === '/resume' && (path === '/resume' || path.startsWith('/resume/'))) ||
+    (itemRoute === '/jobs' && (path === '/jobs' || path.startsWith('/jobs/'))) ||
+    (itemRoute === '/match' && (path.startsWith('/match/') || path.startsWith('/optimize/') || path.startsWith('/ats/') || path.startsWith('/cover-letter/'))) ||
+    (itemRoute === '/export' && path === '/export') ||
+    (itemRoute === '/settings' && (path === '/settings' || path === '/premium'));
+}
+
 function setupBottomNav() {
   const nav = document.getElementById('bottom-nav');
-  if (!nav) return;
+  if (nav) {
+    nav.addEventListener('click', (e) => {
+      const item = e.target.closest('.nav-item');
+      if (!item) return;
+      const route = item.dataset.route;
+      if (route) router.navigate(route);
+    });
+  }
 
-  nav.addEventListener('click', (e) => {
-    const item = e.target.closest('.nav-item');
-    if (!item) return;
-    const route = item.dataset.route;
-    if (route) router.navigate(route);
-  });
+  // Sidebar nav clicks
+  const sidebar = document.getElementById('sidebar-nav');
+  if (sidebar) {
+    sidebar.addEventListener('click', (e) => {
+      const item = e.target.closest('.sidebar-nav-item');
+      if (!item) return;
+      const route = item.dataset.route;
+      if (route) router.navigate(route);
+    });
+  }
 
   // Update active state on route change
   events.on(EVENTS.ROUTE_CHANGE, (route) => {
-    const nav = document.getElementById('bottom-nav');
-    if (!nav) return;
+    const path = route.path;
 
-    nav.querySelectorAll('.nav-item').forEach(item => {
-      const itemRoute = item.dataset.route;
-      const path = route.path;
-      const isActive = path === itemRoute ||
-        (itemRoute === '/resume' && (path === '/resume' || path.startsWith('/resume/'))) ||
-        (itemRoute === '/jobs' && (path === '/jobs' || path.startsWith('/jobs/'))) ||
-        (itemRoute === '/match' && (path.startsWith('/match/') || path.startsWith('/optimize/') || path.startsWith('/ats/') || path.startsWith('/cover-letter/'))) ||
-        (itemRoute === '/export' && path === '/export') ||
-        (itemRoute === '/settings' && (path === '/settings' || path === '/premium'));
+    // Bottom nav
+    const bottomNav = document.getElementById('bottom-nav');
+    if (bottomNav) {
+      bottomNav.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.toggle('active', isRouteActive(item.dataset.route, path));
+      });
+    }
 
-      item.classList.toggle('active', isActive);
-    });
+    // Sidebar nav
+    const sidebarNav = document.getElementById('sidebar-nav');
+    if (sidebarNav) {
+      sidebarNav.querySelectorAll('.sidebar-nav-item').forEach(item => {
+        item.classList.toggle('active', isRouteActive(item.dataset.route, path));
+      });
+    }
 
     // Animate screen container
     const screenContainer = document.getElementById('screen-container');
