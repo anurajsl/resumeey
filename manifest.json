@@ -1,0 +1,39 @@
+{
+  "name": "Resumey — Smart Resume Builder",
+  "short_name": "Resumey",
+  "description": "AI-powered resume builder and optimizer. Create, improve, and tailor resumes for specific jobs.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FAF8F5",
+  "theme_color": "#4A7C59",
+  "orientation": "portrait-primary",
+  "lang": "en",
+  "categories": ["productivity", "business"],
+  "icons": [
+    { "src": "/assets/icons/icon-72.png", "sizes": "72x72", "type": "image/png" },
+    { "src": "/assets/icons/icon-96.png", "sizes": "96x96", "type": "image/png" },
+    { "src": "/assets/icons/icon-128.png", "sizes": "128x128", "type": "image/png" },
+    { "src": "/assets/icons/icon-144.png", "sizes": "144x144", "type": "image/png" },
+    { "src": "/assets/icons/icon-152.png", "sizes": "152x152", "type": "image/png" },
+    { "src": "/assets/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/assets/icons/icon-384.png", "sizes": "384x384", "type": "image/png" },
+    { "src": "/assets/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "New Job Target",
+      "short_name": "Add Job",
+      "description": "Add a new job description to match",
+      "url": "/#/jobs/add",
+      "icons": [{ "src": "/assets/icons/icon-96.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "My Resume",
+      "short_name": "Resume",
+      "description": "View your master resume",
+      "url": "/#/resume",
+      "icons": [{ "src": "/assets/icons/icon-96.png", "sizes": "96x96" }]
+    }
+  ]
+}
