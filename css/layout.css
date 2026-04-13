@@ -83,6 +83,11 @@
   background: var(--color-bg-secondary);
 }
 
+/* Sidebar — hidden on mobile, shown on desktop via responsive.css */
+.app-sidebar {
+  display: none;
+}
+
 /* Main Content */
 .app-main {
   flex: 1;
