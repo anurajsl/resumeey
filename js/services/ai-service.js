@@ -176,6 +176,15 @@ Write summary:`;
     return this.prompt(system, user, { maxTokens: 300, temperature: 0.7 });
   }
 
+  // Copilot multi-turn chat
+  async chat(systemPrompt, history = []) {
+    const messages = [
+      { role: 'system', content: systemPrompt },
+      ...history.map(h => ({ role: h.role, content: h.content })),
+    ];
+    return this.complete({ messages, temperature: 0.75, maxTokens: 800 });
+  }
+
   async generateCoverLetter({ resumeData, jobTitle, company, jobDescription, tone = 'professional' }) {
     const toneGuide = {
       formal: 'formal and traditional',

@@ -23,6 +23,7 @@ import { renderCoverLetter } from './screens/cover-letter/cover-letter.js';
 import { renderExportView } from './screens/export/export-view.js';
 import { renderSettings } from './screens/settings/settings.js';
 import { renderPremium } from './screens/premium/premium.js';
+import { initCopilot } from './components/copilot.js';
 
 async function init() {
   try {
@@ -66,6 +67,17 @@ async function init() {
 
     // Start router
     router.start();
+
+    // Initialize Copilot (after router — needs route-change events)
+    initCopilot();
+
+    // Hide copilot on onboarding screens
+    events.on(EVENTS.ROUTE_CHANGE, (route) => {
+      const fab = document.getElementById('copilot-fab');
+      if (!fab) return;
+      const hide = route.path === '/welcome' || route.path.startsWith('/onboarding');
+      fab.style.display = hide ? 'none' : '';
+    });
 
     // Handle hash === '' (initial load)
     if (!window.location.hash || window.location.hash === '#') {
