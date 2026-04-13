@@ -8,7 +8,8 @@ import { formatDateRange, timeAgo } from '../../utils/formatters.js';
 
 export async function renderMasterResume() {
   const container = document.getElementById('screen-container');
-  document.getElementById('bottom-nav').style.display = '';
+  const nav = document.getElementById('bottom-nav');
+  if (nav) nav.style.display = '';
 
   // Show skeleton
   container.innerHTML = '';
@@ -207,15 +208,44 @@ function renderEducationSection(education) {
 
 function renderSkillsSection(skills) {
   if (!skills.length) return '';
-  const chips = skills.map(s => {
+
+  // Separate into technical (contains known patterns), tools, and general
+  const technical = [], tools = [], general = [];
+  const toolPatterns = /\b(aws|azure|gcp|docker|kubernetes|git|jira|figma|excel|sql|linux|windows|mac|jenkins|terraform|grafana|datadog|salesforce|slack|notion|asana|trello|adobe|photoshop|illustrator|vs\s?code|xcode|android studio)\b/i;
+  const techPatterns = /\b(python|javascript|typescript|java|c\+\+|c#|ruby|go|rust|swift|kotlin|react|angular|vue|node|django|flask|spring|rails|nextjs|graphql|rest|api|html|css|sql|nosql|mongodb|postgres|mysql|redis|kafka|spark|hadoop|ml|ai|nlp|deep learning|machine learning|tensorflow|pytorch|scikit)\b/i;
+
+  skills.forEach(s => {
     const name = typeof s === 'string' ? s : s.name || '';
-    return `<span class="tag tag-primary">${name}</span>`;
-  }).join('');
+    if (!name) return;
+    if (techPatterns.test(name)) technical.push(name);
+    else if (toolPatterns.test(name)) tools.push(name);
+    else general.push(name);
+  });
+
+  let html = '';
+  if (technical.length) {
+    html += `<div class="skills-category-label">Technical</div>
+      <div class="skills-grid">${technical.map(n => `<span class="tag tag-primary">${n}</span>`).join('')}</div>`;
+  }
+  if (tools.length) {
+    html += `<div class="skills-category-label">Tools &amp; Platforms</div>
+      <div class="skills-grid">${tools.map(n => `<span class="tag tag-neutral">${n}</span>`).join('')}</div>`;
+  }
+  if (general.length) {
+    html += `<div class="skills-category-label">Other</div>
+      <div class="skills-grid">${general.map(n => `<span class="tag tag-neutral">${n}</span>`).join('')}</div>`;
+  }
+  if (!html) {
+    // fallback flat
+    html = `<div class="skills-grid">${skills.map(s => {
+      const name = typeof s === 'string' ? s : s.name || '';
+      return `<span class="tag tag-primary">${name}</span>`;
+    }).join('')}</div>`;
+  }
 
   return sectionCard(
     `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>`,
-    'Skills', 'skills',
-    `<div class="skills-grid">${chips}</div>`
+    'Skills', 'skills', html
   );
 }
 

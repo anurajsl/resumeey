@@ -9,7 +9,7 @@ import { scoreBadge } from '../../components/score-ring.js';
 
 export async function renderJobList() {
   const container = document.getElementById('screen-container');
-  document.getElementById('bottom-nav').style.display = '';
+  document.getElementById('bottom-nav')?.style && (document.getElementById('bottom-nav').style.display = '';
 
   container.innerHTML = '';
   const skeleton = createSkeleton('list');

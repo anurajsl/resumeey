@@ -9,7 +9,7 @@ import { scoreBadge } from '../../components/score-ring.js';
 
 export async function renderJobDetail({ id }) {
   const container = document.getElementById('screen-container');
-  document.getElementById('bottom-nav').style.display = '';
+  document.getElementById('bottom-nav')?.style && (document.getElementById('bottom-nav').style.display = '';
 
   const job = await JobRepo.get(id);
   if (!job) {

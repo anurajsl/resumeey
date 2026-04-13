@@ -10,7 +10,7 @@ import { scoreColorClass, scoreLabel } from '../../utils/formatters.js';
 
 export async function renderMatchDashboard({ jobId }) {
   const container = document.getElementById('screen-container');
-  document.getElementById('bottom-nav').style.display = '';
+  document.getElementById('bottom-nav')?.style && (document.getElementById('bottom-nav').style.display = '';
 
   container.innerHTML = '';
   container.appendChild(createSkeleton('header'));

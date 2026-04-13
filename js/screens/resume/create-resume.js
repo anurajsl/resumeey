@@ -10,7 +10,7 @@ import { shortId } from '../../utils/formatters.js';
 
 export async function renderCreateResume() {
   const container = document.getElementById('screen-container');
-  document.getElementById('bottom-nav').style.display = '';
+  document.getElementById('bottom-nav')?.style && (document.getElementById('bottom-nav').style.display = '';
 
   // Check free tier
   const canCreate = await PremiumService.canCreateResume();
