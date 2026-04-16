@@ -1,9 +1,14 @@
-# ============================================================
-# TRACE — Gate Outcome Metrics
-# ============================================================
-# Automatically recorded at each gate end.
-# Used by trace metrics for threshold calibration suggestions.
-# One-way ratchet: suggestions only tighten, never loosen.
-# ============================================================
-
-outcomes: []
+outcomes:
+  - timestamp: 2026-04-16 04:35:35
+    gate: end
+    result: pass
+    failures: []
+    thresholds:
+      max_file_lines: 500
+      max_function_lines: 60
+      max_debt: 5
+    quality_results:
+      - name: JS syntax (all files)
+        passed: true
+    consumer_sync:
+      violations: 0

@@ -1,0 +1,7 @@
+generated_at: 2026-04-16T04:35:35.551Z
+generated_by: trace-coherence
+version: "1.0"
+checksums:
+  trace.yaml: b3eb6e3bd283d0e4f6fdba8ec64c12a61e0eb632df2fcf20232f6ad87bd4377d
+  .trace/TRACE_STATE.yaml: 0969e10aa3640fa3bef4a9d408a3cf5140d5d1bd04b885d0730217751596efb7
+  .trace/DEBT.yaml: 6e7c5e7eeac11fd56fb042debe8eb957a9625c31abc5eda711d8cf609f08ba92
