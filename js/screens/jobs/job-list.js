@@ -7,6 +7,12 @@ import { createSkeleton } from '../../components/loading-skeleton.js';
 import { scoreColorClass, timeAgo } from '../../utils/formatters.js';
 import { scoreBadge } from '../../components/score-ring.js';
 
+const STATUS_LABELS = { saved: 'Saved', applied: 'Applied', interview: 'Interview', offer: 'Offer', rejected: 'Rejected' };
+const STATUS_COLORS = { saved: 'var(--color-text-tertiary)', applied: '#2980B9', interview: '#8E44AD', offer: 'var(--color-primary)', rejected: 'var(--color-error)' };
+
+let activeFilter = 'all';
+let sortMode = 'date';
+
 export async function renderJobList() {
   const container = document.getElementById('screen-container');
   const nav = document.getElementById('bottom-nav'); if (nav) nav.style.display = '';
@@ -15,43 +21,90 @@ export async function renderJobList() {
   const skeleton = createSkeleton('list');
   container.appendChild(skeleton);
 
-  const jobs = await JobRepo.getAll();
+  const allJobs = await JobRepo.getAll();
+
+  const renderList = () => {
+    let jobs = activeFilter === 'all' ? allJobs : allJobs.filter(j => (j.status || 'saved') === activeFilter);
+
+    if (sortMode === 'score') {
+      jobs = [...jobs].sort((a, b) => (b.matchResult?.overallScore ?? -1) - (a.matchResult?.overallScore ?? -1));
+    } else {
+      jobs = [...jobs].sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+    }
+
+    document.getElementById('jobs-list').innerHTML = jobs.length === 0
+      ? `<div style="padding:40px 16px;text-align:center;color:var(--color-text-tertiary);font-size:14px">No jobs in this category</div>`
+      : jobs.map(job => renderJobCard(job)).join('');
+  };
+
+  const filterCounts = {};
+  ['all', 'saved', 'applied', 'interview', 'offer', 'rejected'].forEach(f => {
+    filterCounts[f] = f === 'all' ? allJobs.length : allJobs.filter(j => (j.status || 'saved') === f).length;
+  });
 
   container.innerHTML = `
     <div class="animate-fade-up">
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:24px 16px 16px">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:24px 16px 12px">
         <div>
           <h2 class="page-title">Job Targets</h2>
-          <p class="page-subtitle">${jobs.length} saved${jobs.length === 1 ? '' : ''}</p>
+          <p class="page-subtitle">${allJobs.length} saved</p>
         </div>
-        <button class="btn btn-primary btn-sm" id="btn-add-job">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          Add Job
-        </button>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button class="btn btn-ghost btn-sm" id="btn-sort" title="Sort">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+            ${sortMode === 'score' ? 'By Score' : 'By Date'}
+          </button>
+          <button class="btn btn-primary btn-sm" id="btn-add-job">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add Job
+          </button>
+        </div>
       </div>
 
-      <div id="jobs-list">
-        ${jobs.length === 0 ? '' : jobs.map(job => renderJobCard(job)).join('')}
+      <!-- Filter tabs -->
+      <div class="job-filter-tabs" id="job-filter-tabs">
+        ${['all', 'applied', 'interview', 'offer', 'rejected'].map(f => `
+          <button class="job-filter-tab ${activeFilter === f ? 'active' : ''}" data-filter="${f}">
+            ${f === 'all' ? 'All' : STATUS_LABELS[f]}
+            ${filterCounts[f] > 0 ? `<span class="job-filter-count">${filterCounts[f]}</span>` : ''}
+          </button>
+        `).join('')}
       </div>
+
+      <div id="jobs-list"></div>
     </div>
   `;
 
-  if (jobs.length === 0) {
-    const listEl = document.getElementById('jobs-list');
-    listEl.appendChild(createEmptyState({
+  renderList();
+
+  if (allJobs.length === 0) {
+    document.getElementById('jobs-list').appendChild(createEmptyState({
       icon: `<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>`,
       title: 'No jobs yet',
       description: 'Add a job description to start matching your resume and getting optimization suggestions.',
-      action: {
-        label: '+ Add First Job',
-        onClick: () => router.navigate('/jobs/add'),
-      },
+      action: { label: '+ Add First Job', onClick: () => router.navigate('/jobs/add') },
     }));
   }
 
   document.getElementById('btn-add-job').addEventListener('click', () => router.navigate('/jobs/add'));
 
-  // Job card click
+  document.getElementById('btn-sort').addEventListener('click', (e) => {
+    sortMode = sortMode === 'date' ? 'score' : 'date';
+    e.currentTarget.innerHTML = `
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+      ${sortMode === 'score' ? 'By Score' : 'By Date'}
+    `;
+    renderList();
+  });
+
+  document.getElementById('job-filter-tabs').addEventListener('click', (e) => {
+    const btn = e.target.closest('.job-filter-tab');
+    if (!btn) return;
+    activeFilter = btn.dataset.filter;
+    document.querySelectorAll('.job-filter-tab').forEach(b => b.classList.toggle('active', b.dataset.filter === activeFilter));
+    renderList();
+  });
+
   container.addEventListener('click', (e) => {
     const card = e.target.closest('.job-card');
     if (!card) return;
@@ -66,6 +119,8 @@ function renderJobCard(job) {
   const colors = ['#4A7C59', '#2980B9', '#8E44AD', '#E67E22', '#C0392B'];
   const colorIdx = job.company?.charCodeAt(0) % colors.length || 0;
   const color = colors[colorIdx];
+  const status = job.status || 'saved';
+  const statusColor = STATUS_COLORS[status];
 
   const scoreHTML = score != null ? `
     <div class="job-card-score">
@@ -74,7 +129,7 @@ function renderJobCard(job) {
     </div>
   ` : `
     <div class="job-card-score">
-      <span style="font-size:11px;color:var(--color-text-tertiary)">Not scored</span>
+      <span style="font-size:11px;color:var(--color-text-tertiary)">—</span>
     </div>
   `;
 
@@ -84,7 +139,10 @@ function renderJobCard(job) {
         ${initials}
       </div>
       <div class="job-card-info">
-        <div class="job-card-title">${job.title}</div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <div class="job-card-title">${job.title}</div>
+          <span class="job-status-badge" style="color:${statusColor};border-color:${statusColor}20;background:${statusColor}12">${STATUS_LABELS[status]}</span>
+        </div>
         <div class="job-card-company">${job.company || 'Unknown'}${job.location ? ` · ${job.location}` : ''}</div>
         <div style="margin-top:4px;display:flex;gap:6px;flex-wrap:wrap">
           ${(job.keywords?.skills || []).slice(0, 3).map(s => `<span class="tag tag-neutral" style="font-size:10px">${s}</span>`).join('')}

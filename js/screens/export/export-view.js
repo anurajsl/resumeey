@@ -2,7 +2,7 @@
 
 import { router } from '../../router.js';
 import { ResumeRepo } from '../../db/repositories.js';
-import { exportToPDF } from '../../services/export-service.js';
+import { exportToPDF, buildResumeHTML } from '../../services/export-service.js';
 import { PremiumService } from '../../services/premium-service.js';
 import { toast } from '../../components/toast.js';
 import { createEmptyState } from '../../components/empty-state.js';
@@ -72,6 +72,20 @@ export async function renderExportView() {
         <button class="btn btn-gold btn-sm" id="btn-upgrade">Upgrade</button>
       </div>` : ''}
 
+      <!-- Preview toggle -->
+      <div style="margin-bottom:16px">
+        <button class="btn btn-outline btn-block" id="btn-toggle-preview">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          Preview Resume
+        </button>
+        <div id="resume-preview-wrap" style="display:none;margin-top:12px">
+          <div class="resume-preview-container">
+            <iframe id="resume-preview-frame" class="resume-preview-frame" title="Resume Preview"></iframe>
+          </div>
+          <p style="font-size:11px;color:var(--color-text-tertiary);text-align:center;margin-top:6px">Scroll to see full resume · Actual PDF may differ slightly</p>
+        </div>
+      </div>
+
       <!-- Export button -->
       <button class="btn btn-primary btn-lg btn-block" id="btn-export-pdf">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -83,6 +97,27 @@ export async function renderExportView() {
       </p>
     </div>
   `;
+
+  let previewOpen = false;
+
+  const updatePreview = () => {
+    const frame = document.getElementById('resume-preview-frame');
+    if (!frame || !previewOpen) return;
+    const html = buildResumeHTML(resume, selectedTemplate, isPremium);
+    frame.srcdoc = html;
+  };
+
+  // Preview toggle
+  document.getElementById('btn-toggle-preview').addEventListener('click', () => {
+    previewOpen = !previewOpen;
+    const wrap = document.getElementById('resume-preview-wrap');
+    const btn = document.getElementById('btn-toggle-preview');
+    wrap.style.display = previewOpen ? '' : 'none';
+    btn.innerHTML = previewOpen
+      ? `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Hide Preview`
+      : `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> Preview Resume`;
+    if (previewOpen) updatePreview();
+  });
 
   // Template selection
   container.addEventListener('click', (e) => {
@@ -99,6 +134,7 @@ export async function renderExportView() {
     document.querySelectorAll('.template-card').forEach(c => {
       c.classList.toggle('selected', c.dataset.template === template);
     });
+    updatePreview();
   });
 
   document.getElementById('btn-upgrade')?.addEventListener('click', () => router.navigate('/premium'));

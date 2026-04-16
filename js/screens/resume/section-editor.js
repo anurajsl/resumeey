@@ -73,6 +73,9 @@ export async function renderSectionEditor({ section }) {
   else if (section === 'experience') renderExperienceEditor(editorContent, data || [], saveSection, resume.id, section);
   else if (section === 'education') renderEducationEditor(editorContent, data || [], saveSection, resume.id, section);
   else if (section === 'skills') renderSkillsEditor(editorContent, data || [], saveSection, resume.id, section);
+  else if (section === 'projects') renderProjectsEditor(editorContent, data || [], saveSection);
+  else if (section === 'certifications') renderCertificationsEditor(editorContent, data || [], saveSection);
+  else if (section === 'awards') renderAwardsEditor(editorContent, data || [], saveSection);
   else {
     editorContent.innerHTML = `<p style="color:var(--color-text-secondary)">Section editor coming soon.</p>`;
   }
@@ -98,7 +101,45 @@ export async function renderSectionEditor({ section }) {
     if (section === 'contact') return collectContact();
     if (section === 'summary') return document.getElementById('summary-input')?.value?.trim() || '';
     if (section === 'skills') return collectSkills();
+    if (section === 'projects') return collectRepeatable('project');
+    if (section === 'certifications') return collectRepeatable('cert');
+    if (section === 'awards') return collectRepeatable('award');
     return null;
+  }
+
+  function collectRepeatable(prefix) {
+    const items = [];
+    document.querySelectorAll(`[data-${prefix}-index]`).forEach(card => {
+      const i = card.dataset[`${prefix}Index`];
+      const get = (cls) => card.querySelector(`.${prefix}-${cls}`)?.value?.trim() || '';
+      if (prefix === 'project') {
+        items[i] = {
+          name: get('name'),
+          description: get('description'),
+          url: get('url'),
+          technologies: get('tech').split(',').map(s => s.trim()).filter(Boolean),
+          startDate: get('start') || null,
+          endDate: get('end') || null,
+        };
+      } else if (prefix === 'cert') {
+        items[i] = {
+          name: get('name'),
+          issuer: get('issuer'),
+          issueDate: get('date') || null,
+          expiryDate: get('expiry') || null,
+          credentialId: get('id'),
+          url: get('url'),
+        };
+      } else if (prefix === 'award') {
+        items[i] = {
+          title: get('title'),
+          issuer: get('issuer'),
+          date: get('date') || null,
+          description: get('description'),
+        };
+      }
+    });
+    return items.filter(Boolean);
   }
 
   function collectContact() {
@@ -385,4 +426,184 @@ function renderSkillsEditor(container, data, onChange, resumeId, section) {
     const btn = e.target.closest('.btn-remove-skill');
     if (btn) btn.closest('div').remove();
   });
+}
+
+function renderProjectsEditor(container, data, onChange) {
+  const render = () => {
+    container.innerHTML = `
+      <div id="projects-list">
+        ${data.map((p, i) => `
+          <div class="card" style="padding:16px;margin-bottom:12px" data-project-index="${i}">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+              <strong style="font-size:14px">${p.name || 'New Project'}</strong>
+              <button class="btn-icon btn-remove-project" data-index="${i}" aria-label="Remove">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+              </button>
+            </div>
+            <input type="text" class="form-input project-name" value="${p.name || ''}" placeholder="Project Name" style="margin-bottom:8px" />
+            <textarea class="form-textarea project-description" style="min-height:80px;margin-bottom:8px;font-size:13px" placeholder="Describe what you built and its impact...">${p.description || ''}</textarea>
+            <input type="text" class="form-input project-tech" value="${(p.technologies || []).join(', ')}" placeholder="Technologies (React, Node.js, ...)" style="margin-bottom:8px" />
+            <input type="url" class="form-input project-url" value="${p.url || ''}" placeholder="Project URL (optional)" style="margin-bottom:8px" />
+            <div style="display:flex;gap:8px">
+              <input type="month" class="form-input project-start" value="${p.startDate || ''}" placeholder="Start" style="flex:1" />
+              <input type="month" class="form-input project-end" value="${p.endDate || ''}" placeholder="End" style="flex:1" />
+            </div>
+          </div>
+        `).join('')}
+      </div>
+      <button class="btn btn-outline btn-block" id="btn-add-project" style="margin-top:8px">+ Add Project</button>
+    `;
+
+    document.getElementById('btn-add-project')?.addEventListener('click', () => {
+      data.push({ name: '', description: '', url: '', technologies: [], startDate: null, endDate: null });
+      render();
+    });
+
+    container.querySelectorAll('.btn-remove-project').forEach(btn => {
+      btn.addEventListener('click', () => {
+        data.splice(parseInt(btn.dataset.index), 1);
+        render();
+        onChange(data);
+      });
+    });
+
+    const fields = ['project-name', 'project-description', 'project-tech', 'project-url', 'project-start', 'project-end'];
+    fields.forEach(cls => {
+      container.querySelectorAll(`.${cls}`).forEach((input, i) => {
+        input.addEventListener('input', () => {
+          const card = input.closest('[data-project-index]');
+          const idx = parseInt(card.dataset.projectIndex);
+          if (cls === 'project-name') data[idx].name = input.value;
+          else if (cls === 'project-description') data[idx].description = input.value;
+          else if (cls === 'project-tech') data[idx].technologies = input.value.split(',').map(s => s.trim()).filter(Boolean);
+          else if (cls === 'project-url') data[idx].url = input.value;
+          else if (cls === 'project-start') data[idx].startDate = input.value || null;
+          else if (cls === 'project-end') data[idx].endDate = input.value || null;
+          onChange(data);
+        });
+      });
+    });
+  };
+
+  render();
+}
+
+function renderCertificationsEditor(container, data, onChange) {
+  const render = () => {
+    container.innerHTML = `
+      <div id="certs-list">
+        ${data.map((c, i) => `
+          <div class="card" style="padding:16px;margin-bottom:12px" data-cert-index="${i}">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+              <strong style="font-size:14px">${c.name || 'New Certification'}</strong>
+              <button class="btn-icon btn-remove-cert" data-index="${i}" aria-label="Remove">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+              </button>
+            </div>
+            <input type="text" class="form-input cert-name" value="${c.name || ''}" placeholder="Certification Name" style="margin-bottom:8px" />
+            <input type="text" class="form-input cert-issuer" value="${c.issuer || ''}" placeholder="Issuing Organization (AWS, Google, ...)" style="margin-bottom:8px" />
+            <div style="display:flex;gap:8px;margin-bottom:8px">
+              <div style="flex:1">
+                <label class="form-label" style="font-size:11px">Issue Date</label>
+                <input type="month" class="form-input cert-date" value="${c.issueDate || ''}" style="width:100%" />
+              </div>
+              <div style="flex:1">
+                <label class="form-label" style="font-size:11px">Expiry Date</label>
+                <input type="month" class="form-input cert-expiry" value="${c.expiryDate || ''}" style="width:100%" />
+              </div>
+            </div>
+            <input type="text" class="form-input cert-id" value="${c.credentialId || ''}" placeholder="Credential ID (optional)" style="margin-bottom:8px" />
+            <input type="url" class="form-input cert-url" value="${c.url || ''}" placeholder="Verification URL (optional)" />
+          </div>
+        `).join('')}
+      </div>
+      <button class="btn btn-outline btn-block" id="btn-add-cert" style="margin-top:8px">+ Add Certification</button>
+    `;
+
+    document.getElementById('btn-add-cert')?.addEventListener('click', () => {
+      data.push({ name: '', issuer: '', issueDate: null, expiryDate: null, credentialId: '', url: '' });
+      render();
+    });
+
+    container.querySelectorAll('.btn-remove-cert').forEach(btn => {
+      btn.addEventListener('click', () => {
+        data.splice(parseInt(btn.dataset.index), 1);
+        render();
+        onChange(data);
+      });
+    });
+
+    const fields = ['cert-name', 'cert-issuer', 'cert-date', 'cert-expiry', 'cert-id', 'cert-url'];
+    fields.forEach(cls => {
+      container.querySelectorAll(`.${cls}`).forEach(input => {
+        input.addEventListener('input', () => {
+          const card = input.closest('[data-cert-index]');
+          const idx = parseInt(card.dataset.certIndex);
+          if (cls === 'cert-name') data[idx].name = input.value;
+          else if (cls === 'cert-issuer') data[idx].issuer = input.value;
+          else if (cls === 'cert-date') data[idx].issueDate = input.value || null;
+          else if (cls === 'cert-expiry') data[idx].expiryDate = input.value || null;
+          else if (cls === 'cert-id') data[idx].credentialId = input.value;
+          else if (cls === 'cert-url') data[idx].url = input.value;
+          onChange(data);
+        });
+      });
+    });
+  };
+
+  render();
+}
+
+function renderAwardsEditor(container, data, onChange) {
+  const render = () => {
+    container.innerHTML = `
+      <div id="awards-list">
+        ${data.map((a, i) => `
+          <div class="card" style="padding:16px;margin-bottom:12px" data-award-index="${i}">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+              <strong style="font-size:14px">${a.title || 'New Award'}</strong>
+              <button class="btn-icon btn-remove-award" data-index="${i}" aria-label="Remove">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+              </button>
+            </div>
+            <input type="text" class="form-input award-title" value="${a.title || ''}" placeholder="Award / Honor Title" style="margin-bottom:8px" />
+            <input type="text" class="form-input award-issuer" value="${a.issuer || ''}" placeholder="Issuing Organization" style="margin-bottom:8px" />
+            <input type="month" class="form-input award-date" value="${a.date || ''}" placeholder="Date Received" style="margin-bottom:8px" />
+            <textarea class="form-textarea award-description" style="min-height:70px;font-size:13px" placeholder="Brief description (optional)...">${a.description || ''}</textarea>
+          </div>
+        `).join('')}
+      </div>
+      <button class="btn btn-outline btn-block" id="btn-add-award" style="margin-top:8px">+ Add Award</button>
+    `;
+
+    document.getElementById('btn-add-award')?.addEventListener('click', () => {
+      data.push({ title: '', issuer: '', date: null, description: '' });
+      render();
+    });
+
+    container.querySelectorAll('.btn-remove-award').forEach(btn => {
+      btn.addEventListener('click', () => {
+        data.splice(parseInt(btn.dataset.index), 1);
+        render();
+        onChange(data);
+      });
+    });
+
+    const fields = ['award-title', 'award-issuer', 'award-date', 'award-description'];
+    fields.forEach(cls => {
+      container.querySelectorAll(`.${cls}`).forEach(input => {
+        input.addEventListener('input', () => {
+          const card = input.closest('[data-award-index]');
+          const idx = parseInt(card.dataset.awardIndex);
+          if (cls === 'award-title') data[idx].title = input.value;
+          else if (cls === 'award-issuer') data[idx].issuer = input.value;
+          else if (cls === 'award-date') data[idx].date = input.value || null;
+          else if (cls === 'award-description') data[idx].description = input.value;
+          onChange(data);
+        });
+      });
+    });
+  };
+
+  render();
 }

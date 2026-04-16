@@ -49,6 +49,11 @@ export async function renderJobDetail({ id }) {
           </div>
           ${score != null ? scoreBadge(score).outerHTML : ''}
         </div>
+
+        <!-- Application Status Tracker -->
+        <div class="status-tracker" id="status-tracker">
+          ${renderStatusSteps(job.status || 'saved')}
+        </div>
       </div>
 
       <!-- Action buttons -->
@@ -101,6 +106,16 @@ export async function renderJobDetail({ id }) {
     </div>
   `;
 
+  // Status tracker
+  document.getElementById('status-tracker').addEventListener('click', async (e) => {
+    const btn = e.target.closest('.status-step');
+    if (!btn) return;
+    const newStatus = btn.dataset.status;
+    await JobRepo.update(id, { status: newStatus });
+    document.getElementById('status-tracker').innerHTML = renderStatusSteps(newStatus);
+    toast.info(`Status: ${STATUS_LABELS[newStatus]}`);
+  });
+
   // Button actions
   document.getElementById('btn-match').addEventListener('click', () => router.navigate(`/match/${id}`));
   document.getElementById('btn-optimize').addEventListener('click', () => router.navigate(`/optimize/${id}`));
@@ -132,6 +147,41 @@ export async function renderJobDetail({ id }) {
       router.navigate('/jobs');
     }
   });
+}
+
+const STATUS_LABELS = {
+  saved: 'Saved',
+  applied: 'Applied',
+  interview: 'Interview',
+  offer: 'Offer',
+  rejected: 'Rejected',
+};
+
+const STATUS_ORDER = ['saved', 'applied', 'interview', 'offer'];
+
+function renderStatusSteps(current) {
+  const isRejected = current === 'rejected';
+  const steps = STATUS_ORDER.map(s => {
+    const currentIdx = STATUS_ORDER.indexOf(current);
+    const stepIdx = STATUS_ORDER.indexOf(s);
+    const isDone = !isRejected && stepIdx <= currentIdx;
+    const isActive = s === current;
+    return `
+      <button class="status-step ${isDone ? 'done' : ''} ${isActive ? 'active' : ''}" data-status="${s}" title="Mark as ${STATUS_LABELS[s]}">
+        <div class="status-step-dot"></div>
+        <span class="status-step-label">${STATUS_LABELS[s]}</span>
+      </button>
+    `;
+  }).join('<div class="status-step-line"></div>');
+
+  const rejectBtn = `
+    <button class="status-step ${isRejected ? 'rejected active' : ''}" data-status="rejected" title="Mark as Rejected" style="margin-left:auto">
+      <div class="status-step-dot"></div>
+      <span class="status-step-label">Rejected</span>
+    </button>
+  `;
+
+  return `<div class="status-steps">${steps}</div>${rejectBtn}`;
 }
 
 function renderKeywordsSection(title, keywords, tagClass) {

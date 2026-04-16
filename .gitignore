@@ -1,0 +1,3 @@
+
+# TRACE volatile checkpoint (auto-deleted after session)
+.trace/LIVE_CHECKPOINT.yaml

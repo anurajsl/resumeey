@@ -273,7 +273,7 @@ function renderCertsSection(certs) {
   const items = certs.map(c => `
     <div class="experience-item" style="padding:8px 0">
       <div style="font-weight:600;font-size:14px">${c.name}</div>
-      ${c.issuer ? `<div style="font-size:12px;color:var(--color-text-secondary)">${c.issuer}${c.date ? ` · ${c.date.slice(0,4)}` : ''}</div>` : ''}
+      ${c.issuer ? `<div style="font-size:12px;color:var(--color-text-secondary)">${c.issuer}${(c.issueDate || c.date) ? ` · ${(c.issueDate || c.date).slice(0,4)}` : ''}${c.credentialId ? ` · ${c.credentialId}` : ''}</div>` : ''}
     </div>
   `).join('');
 

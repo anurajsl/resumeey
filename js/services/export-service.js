@@ -51,7 +51,7 @@ export async function exportToPDF(resumeData, template = 'classic', isPremium = 
   }
 }
 
-function buildResumeHTML(resumeData, template, isPremium) {
+export function buildResumeHTML(resumeData, template, isPremium) {
   const s = resumeData.sections || {};
   const contact = s.contact || {};
   const experience = s.experience || [];

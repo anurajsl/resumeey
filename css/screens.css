@@ -961,3 +961,180 @@
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+
+/* ============================
+   Application Status Tracker
+   ============================ */
+
+.status-tracker {
+  margin-top: 8px;
+}
+
+.status-steps {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin-bottom: 8px;
+}
+
+.status-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: var(--radius-md);
+  flex-shrink: 0;
+}
+
+.status-step:hover .status-step-dot {
+  transform: scale(1.2);
+}
+
+.status-step-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid var(--color-border-medium);
+  background: var(--color-surface);
+  transition: all var(--duration-fast);
+}
+
+.status-step.done .status-step-dot {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.status-step.active .status-step-dot {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-bg);
+}
+
+.status-step.rejected .status-step-dot {
+  background: var(--color-error);
+  border-color: var(--color-error);
+  box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.12);
+}
+
+.status-step-label {
+  font-size: 10px;
+  color: var(--color-text-tertiary);
+  white-space: nowrap;
+}
+
+.status-step.active .status-step-label {
+  color: var(--color-primary);
+  font-weight: var(--font-semibold);
+}
+
+.status-step.rejected .status-step-label {
+  color: var(--color-error);
+  font-weight: var(--font-semibold);
+}
+
+.status-step-line {
+  flex: 1;
+  height: 2px;
+  background: var(--color-border);
+  min-width: 12px;
+  margin-bottom: 16px;
+}
+
+/* ============================
+   Job List Filter Tabs
+   ============================ */
+
+.job-filter-tabs {
+  display: flex;
+  gap: 6px;
+  padding: 0 16px 12px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.job-filter-tabs::-webkit-scrollbar { display: none; }
+
+.job-filter-tab {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  border-radius: var(--radius-full);
+  border: 1.5px solid var(--color-border);
+  background: var(--color-surface);
+  font-size: 12px;
+  font-weight: var(--font-medium);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all var(--duration-fast);
+  flex-shrink: 0;
+}
+
+.job-filter-tab:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.job-filter-tab.active {
+  background: var(--color-primary-bg);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  font-weight: var(--font-semibold);
+}
+
+.job-filter-count {
+  background: var(--color-primary);
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: var(--radius-full);
+  line-height: 1.4;
+}
+
+.job-filter-tab.active .job-filter-count {
+  background: var(--color-primary-dark);
+}
+
+/* Job status badge on card */
+.job-status-badge {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: var(--radius-full);
+  border: 1px solid;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ============================
+   Resume Preview Frame (Export)
+   ============================ */
+
+.resume-preview-container {
+  width: 100%;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  background: #f5f5f5;
+  box-shadow: var(--shadow-md);
+}
+
+.resume-preview-frame {
+  width: 100%;
+  height: 480px;
+  border: none;
+  display: block;
+  background: white;
+}
+
+@media (min-width: 640px) {
+  .resume-preview-frame {
+    height: 620px;
+  }
+}

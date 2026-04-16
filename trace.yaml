@@ -1,0 +1,269 @@
+# ============================================================
+# TRACE — Trusted Registry for Artifact Consistency and Evolution
+# Project: Resumey PWA
+# ============================================================
+
+project:
+  name: "Resumey"
+  version: "1.0.0"
+  created: "2026-04-16"
+
+# ----------------------------------------------------------
+# PILLAR T: Truth Anchoring
+# ----------------------------------------------------------
+anchors:
+  - id: db_schema
+    description: "Resume and Job data models — canonical structure for all stored data"
+    file: "js/db/repositories.js"
+    consumers:
+      - "js/screens/resume/master-resume.js"
+      - "js/screens/resume/section-editor.js"
+      - "js/screens/resume/create-resume.js"
+      - "js/screens/jobs/job-list.js"
+      - "js/screens/jobs/job-detail.js"
+      - "js/screens/jobs/add-job.js"
+      - "js/screens/match/match-dashboard.js"
+      - "js/screens/optimize/optimize-view.js"
+      - "js/screens/ats/ats-analysis.js"
+      - "js/screens/cover-letter/cover-letter.js"
+      - "js/screens/export/export-view.js"
+      - "js/components/copilot.js"
+
+  - id: ai_service
+    description: "Multi-provider AI abstraction — all AI calls go through this"
+    file: "js/services/ai-service.js"
+    consumers:
+      - "js/screens/jobs/add-job.js"
+      - "js/screens/optimize/optimize-view.js"
+      - "js/screens/cover-letter/cover-letter.js"
+      - "js/services/optimizer-service.js"
+      - "js/components/copilot.js"
+
+  - id: router
+    description: "Hash-based SPA router — all route definitions live in app.js"
+    file: "js/router.js"
+    consumers:
+      - "js/app.js"
+      - "js/screens/resume/master-resume.js"
+      - "js/screens/jobs/job-list.js"
+      - "js/screens/jobs/job-detail.js"
+      - "js/components/copilot.js"
+
+  - id: events
+    description: "App-wide event bus and EVENTS constant map"
+    file: "js/events.js"
+    consumers:
+      - "js/app.js"
+      - "js/components/copilot.js"
+      - "js/screens/onboarding/ai-setup.js"
+
+  - id: match_engine
+    description: "4-factor match scoring algorithm (skills/experience/keywords/education)"
+    file: "js/services/match-engine.js"
+    consumers:
+      - "js/screens/match/match-dashboard.js"
+      - "js/screens/optimize/optimize-view.js"
+      - "js/components/copilot.js"
+
+  - id: ats_analyzer
+    description: "ATS scoring and issue detection (formatting/keywords/readability/completeness)"
+    file: "js/services/ats-analyzer.js"
+    consumers:
+      - "js/screens/ats/ats-analysis.js"
+      - "js/screens/optimize/optimize-view.js"
+      - "js/components/copilot.js"
+
+  - id: constants
+    description: "Shared application constants"
+    file: "js/utils/constants.js"
+    consumers:
+      - "js/db/database.js"
+      - "js/screens/onboarding/ai-setup.js"
+      - "js/screens/settings/settings.js"
+
+  - id: premium_service
+    description: "Premium tier gating — used by all screens that have paid features"
+    file: "js/services/premium-service.js"
+    consumers:
+      - "js/screens/resume/create-resume.js"
+      - "js/screens/jobs/add-job.js"
+      - "js/screens/export/export-view.js"
+      - "js/app.js"
+
+  - id: toast
+    description: "Toast notification component — used across all screens for feedback"
+    file: "js/components/toast.js"
+
+  - id: formatters
+    description: "Shared utility formatters (timeAgo, scoreColorClass, shortId, etc.)"
+    file: "js/utils/formatters.js"
+
+  - id: score_ring
+    description: "Score ring/badge component for match scores"
+    file: "js/components/score-ring.js"
+    consumers:
+      - "js/screens/jobs/job-list.js"
+      - "js/screens/jobs/job-detail.js"
+      - "js/screens/match/match-dashboard.js"
+      - "js/screens/optimize/optimize-view.js"
+
+  - id: export_service
+    description: "PDF export service and resume HTML builder"
+    file: "js/services/export-service.js"
+    consumers:
+      - "js/screens/export/export-view.js"
+
+# ----------------------------------------------------------
+# PILLAR R: Registry Enforcement
+# ----------------------------------------------------------
+registry:
+  docs_root: ".trace/"
+  tracked_docs:
+    - file: ".trace/HANDOFF.md"
+      tracks: "session_handoff"
+    - file: ".trace/PROJECT_LOG.md"
+      tracks: "session_log"
+  review_cycle: "monthly"
+
+# ----------------------------------------------------------
+# PILLAR A: Automated Verification
+# ----------------------------------------------------------
+verification:
+  tiers:
+    tier1:
+      description: "JS syntax check on all source files"
+      command: "find js -name '*.js' -exec node --check {} \\;"
+      min_count: 0
+    tier2:
+      description: "Full syntax check + service worker validation"
+      command: "find js -name '*.js' -exec node --check {} \\;"
+      min_count: 0
+    tier3:
+      description: "Manual browser smoke test"
+      command: ""
+      min_count: 0
+
+# ----------------------------------------------------------
+# PILLAR C: Controlled Evolution
+# ----------------------------------------------------------
+thresholds:
+  max_file_lines: 500
+  max_function_lines: 60
+  max_cyclomatic: 15
+  max_anchor_consumers: 12
+
+# ----------------------------------------------------------
+# PILLAR E: Execution Contracts
+# ----------------------------------------------------------
+contracts:
+  feature:
+    description: "Adding new functionality"
+    requires_scope_declaration: true
+    verification_tier: "tier2"
+    steps:
+      - "Declare scope (which screens/services/anchors are affected)"
+      - "Run tier1 syntax check baseline"
+      - "Check complexity thresholds"
+      - "Implement feature"
+      - "Update affected anchor consumers"
+      - "Run tier1 syntax check"
+      - "Commit and push to claude/build-resumey-pwa-Y8V1d and main"
+
+  bugfix:
+    description: "Fixing a known defect"
+    requires_scope_declaration: false
+    verification_tier: "tier1"
+    root_cause_required: true
+    steps:
+      - "Identify which anchor or consumer drifted"
+      - "Fix at source"
+      - "Run syntax check"
+      - "Verify no other consumers affected"
+
+# ----------------------------------------------------------
+# File Classification
+# ----------------------------------------------------------
+file_classification:
+  core:
+    description: "Anchor files — data models, services, router"
+    patterns:
+      - "js/db/**"
+      - "js/services/**"
+      - "js/router.js"
+      - "js/events.js"
+      - "js/state.js"
+    min_verification: "tier2"
+    requires_review: true
+
+  supporting:
+    description: "Screen files — consume anchors"
+    patterns:
+      - "js/screens/**"
+      - "js/components/**"
+    min_verification: "tier1"
+    requires_review: true
+
+  peripheral:
+    description: "CSS, HTML, SW, manifest"
+    patterns:
+      - "css/**"
+      - "*.html"
+      - "sw.js"
+      - "manifest.json"
+    min_verification: "tier1"
+    requires_review: false
+
+# ----------------------------------------------------------
+# Quality Checks
+# ----------------------------------------------------------
+quality:
+  checks:
+    - name: "JS syntax (all files)"
+      command: "find js -name '*.js' | xargs -I{} node --check {}"
+      on_fail: "block"
+
+# ----------------------------------------------------------
+# Gates
+# ----------------------------------------------------------
+gates:
+  start:
+    checks:
+      - "trace_state_exists"
+      - "no_unresolved_debt"
+      - "live_checkpoint_recovery"
+    on_fail: "warn"
+
+  end:
+    checks:
+      - "anchors_coherent"
+      - "scope_complete"
+      - "project_log_updated"
+      - "handoff_ready"
+    on_fail: "warn"
+
+# ----------------------------------------------------------
+# Scopes
+# ----------------------------------------------------------
+scopes:
+  resume:
+    anchors: [db_schema, ai_service]
+  jobs:
+    anchors: [db_schema, match_engine]
+  export:
+    anchors: [db_schema, premium_service]
+  copilot:
+    anchors: [ai_service, db_schema, match_engine, ats_analyzer]
+
+# ----------------------------------------------------------
+# Dependencies
+# ----------------------------------------------------------
+dependencies:
+  policy: moderate
+  audit: false
+  blocked: []
+  rules:
+    require_license: false
+    warn_prerelease: true
+    blocked_licenses:
+      - GPL-3.0
+      - AGPL-3.0
