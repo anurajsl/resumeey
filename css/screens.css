@@ -653,6 +653,33 @@
 
 .settings-item-right { color: var(--color-text-tertiary); }
 
+.theme-toggle {
+  display: flex;
+  gap: 4px;
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-sm);
+  padding: 3px;
+}
+
+.theme-toggle-btn {
+  flex: 1;
+  padding: 5px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: background var(--duration-fast), color var(--duration-fast);
+}
+
+.theme-toggle-btn.active {
+  background: var(--color-surface);
+  color: var(--color-text);
+  box-shadow: var(--shadow-xs);
+}
+
 /* ============================
    Premium Screen
    ============================ */
@@ -1276,4 +1303,67 @@
   margin-left: auto;
   text-decoration: underline;
   text-underline-offset: 2px;
+}
+
+/* ============================
+   PWA Install Banner
+   ============================ */
+
+#pwa-install-banner {
+  position: fixed;
+  bottom: calc(var(--bottom-nav-height, 68px) + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 32px);
+  max-width: 480px;
+  z-index: 1000;
+  animation: slideUpFade 0.3s var(--ease-out) both;
+}
+
+#pwa-install-banner.pwa-install-hide {
+  animation: slideDownFade 0.3s var(--ease-in-out) both;
+}
+
+@keyframes slideUpFade {
+  from { opacity: 0; transform: translateX(-50%) translateY(16px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+@keyframes slideDownFade {
+  from { opacity: 1; transform: translateX(-50%) translateY(0); }
+  to   { opacity: 0; transform: translateX(-50%) translateY(16px); }
+}
+
+.pwa-install-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-medium);
+  border-radius: var(--radius-lg);
+  padding: 12px 14px;
+  box-shadow: var(--shadow-lg);
+}
+
+.pwa-install-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.pwa-install-text strong {
+  font-size: 13px;
+  font-weight: var(--font-semibold);
+  color: var(--color-text);
+}
+
+.pwa-install-text span {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.pwa-install-dismiss {
+  color: var(--color-text-tertiary);
+  flex-shrink: 0;
 }

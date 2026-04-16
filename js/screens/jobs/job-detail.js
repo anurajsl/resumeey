@@ -6,6 +6,7 @@ import { confirmModal } from '../../components/modal.js';
 import { toast } from '../../components/toast.js';
 import { timeAgo } from '../../utils/formatters.js';
 import { scoreBadge } from '../../components/score-ring.js';
+import { debounce } from '../../utils/debounce.js';
 
 export async function renderJobDetail({ id }) {
   const container = document.getElementById('screen-container');
@@ -102,6 +103,27 @@ export async function renderJobDetail({ id }) {
         </div>
       </div>
 
+      <!-- Notes -->
+      <div style="padding:0 16px 16px">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              Notes
+            </span>
+            <span id="notes-saved-indicator" style="font-size:11px;color:var(--color-text-tertiary);opacity:0;transition:opacity 400ms"></span>
+          </div>
+          <div class="card-body" style="padding-top:0">
+            <textarea
+              id="job-notes-input"
+              class="form-textarea"
+              placeholder="Track interview prep notes, salary expectations, contacts, deadlines…"
+              style="min-height:100px;font-size:13px;border:none;padding:0;resize:vertical;box-shadow:none"
+            >${escHtml(job.notes || '')}</textarea>
+          </div>
+        </div>
+      </div>
+
       <!-- Danger zone -->
       <div style="padding:0 16px">
         <button class="btn btn-ghost" id="btn-delete-job" style="color:var(--color-error);width:100%">
@@ -111,6 +133,21 @@ export async function renderJobDetail({ id }) {
       </div>
     </div>
   `;
+
+  // Notes auto-save
+  const saveNotes = debounce(async (value) => {
+    await JobRepo.update(id, { notes: value });
+    const indicator = document.getElementById('notes-saved-indicator');
+    if (indicator) {
+      indicator.textContent = 'Saved';
+      indicator.style.opacity = '1';
+      setTimeout(() => { indicator.style.opacity = '0'; }, 1500);
+    }
+  }, 600);
+
+  document.getElementById('job-notes-input')?.addEventListener('input', (e) => {
+    saveNotes(e.target.value);
+  });
 
   // Status tracker
   document.getElementById('status-tracker').addEventListener('click', async (e) => {
@@ -196,6 +233,10 @@ export async function renderJobDetail({ id }) {
       router.navigate('/jobs');
     }
   });
+}
+
+function escHtml(s) {
+  return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
 const STATUS_LABELS = {

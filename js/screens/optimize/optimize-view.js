@@ -69,15 +69,15 @@ export async function renderOptimizeView({ jobId }) {
       </div>
 
       ${!aiAvailable ? `
-      <div class="premium-banner" style="margin-bottom:20px">
-        <div class="premium-banner-icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      <div class="card" style="margin-bottom:16px;border-color:var(--color-border-medium)">
+        <div class="card-body" style="padding:14px 16px">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-warning)" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <span style="font-size:13px;font-weight:600;color:var(--color-text)">No AI key — using rule-based suggestions</span>
+            <button class="btn btn-ghost btn-sm" id="btn-setup-ai" style="margin-left:auto">Add AI Key</button>
+          </div>
+          <p style="font-size:12px;color:var(--color-text-secondary);line-height:1.5">Rule-based mode detects weak verbs, passive voice, and injects missing keywords. Add an AI key for much richer rewrites.</p>
         </div>
-        <div class="premium-banner-text">
-          <div class="premium-banner-title">AI key required</div>
-          <div class="premium-banner-subtitle">Add an AI key in Settings to use optimization</div>
-        </div>
-        <button class="btn btn-sm btn-primary" id="btn-setup-ai">Setup AI</button>
       </div>` : ''}
 
       <!-- Missing keywords -->
@@ -113,21 +113,21 @@ export async function renderOptimizeView({ jobId }) {
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
             </div>
             <div>
-              <div style="font-weight:700;font-size:15px;color:var(--color-text)">Smart Fix</div>
-              <div style="font-size:12px;color:var(--color-text-secondary);margin-top:2px">AI rewrites your bullets, adds missing keywords, and applies all improvements automatically</div>
+              <div style="font-weight:700;font-size:15px;color:var(--color-text)">${aiAvailable ? 'Smart Fix' : 'Quick Fix'}</div>
+              <div style="font-size:12px;color:var(--color-text-secondary);margin-top:2px">${aiAvailable ? 'AI rewrites your bullets, adds missing keywords, and applies all improvements automatically' : 'Rule-based: fixes weak verbs, passive voice, and injects missing keywords automatically'}</div>
             </div>
           </div>
-          <button class="btn btn-gold btn-block" id="btn-smart-fix" ${!aiAvailable ? 'disabled' : ''} style="margin-top:12px">
+          <button class="btn btn-gold btn-block" id="btn-smart-fix" style="margin-top:12px">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-            Auto-Fix &amp; Boost Score
+            ${aiAvailable ? 'Auto-Fix & Boost Score' : 'Quick Fix & Apply'}
           </button>
         </div>
 
         <div class="form-divider"><span>or review changes manually</span></div>
 
-        <button class="btn btn-primary btn-block" id="btn-run-optimize" ${!aiAvailable ? 'disabled' : ''}>
+        <button class="btn btn-primary btn-block" id="btn-run-optimize">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-          Review AI Suggestions
+          ${aiAvailable ? 'Review AI Suggestions' : 'Review Rule-based Suggestions'}
         </button>
       </div>
 
@@ -149,7 +149,7 @@ export async function renderOptimizeView({ jobId }) {
 
     try {
       const missingKeywords = matchResult.missingKeywords || [];
-      const optimizations = await optimizeResume(resume, job.keywords || {}, missingKeywords);
+      const optimizations = await optimizeResume(resume, job.keywords || {}, missingKeywords, { useAI: aiAvailable });
 
       if (!optimizations.length) {
         resultsEl.innerHTML = `<div class="card card-body" style="text-align:center;padding:32px 16px">
@@ -238,7 +238,7 @@ export async function renderOptimizeView({ jobId }) {
 
     try {
       const missingKeywords = matchResult.missingKeywords || [];
-      const optimizations = await optimizeResume(resume, job.keywords || {}, missingKeywords);
+      const optimizations = await optimizeResume(resume, job.keywords || {}, missingKeywords, { useAI: aiAvailable });
 
       if (!optimizations.length) {
         resultsEl.innerHTML = `<div class="card card-body" style="text-align:center;padding:32px 16px">

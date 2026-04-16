@@ -8,6 +8,7 @@ import { toast } from '../../components/toast.js';
 import { clearEncryptionKey } from '../../utils/crypto.js';
 import { aiService } from '../../services/ai-service.js';
 import { AI_PROVIDER_LABELS } from '../../utils/constants.js';
+import { applyTheme } from '../../utils/theme.js';
 
 export async function renderSettings() {
   const container = document.getElementById('screen-container');
@@ -67,15 +68,19 @@ export async function renderSettings() {
       <!-- Appearance -->
       <h3 style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--color-text-secondary);margin-bottom:8px">Appearance</h3>
       <div class="settings-group" style="margin-bottom:20px">
-        <div class="settings-item">
+        <div class="settings-item" style="flex-wrap:wrap;gap:12px">
           <div class="settings-item-icon">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
           </div>
           <div class="settings-item-text">
             <div class="settings-item-title">Theme</div>
-            <div class="settings-item-subtitle">Follows system preference</div>
+            <div class="settings-item-subtitle" id="theme-subtitle">${prefs.theme === 'dark' ? 'Dark mode on' : prefs.theme === 'light' ? 'Light mode on' : 'Follows system preference'}</div>
           </div>
-          <span class="badge badge-neutral">Auto</span>
+          <div class="theme-toggle" id="theme-toggle">
+            <button class="theme-toggle-btn ${(!prefs.theme || prefs.theme === 'auto') ? 'active' : ''}" data-theme="auto">Auto</button>
+            <button class="theme-toggle-btn ${prefs.theme === 'light' ? 'active' : ''}" data-theme="light">Light</button>
+            <button class="theme-toggle-btn ${prefs.theme === 'dark' ? 'active' : ''}" data-theme="dark">Dark</button>
+          </div>
         </div>
       </div>
 
@@ -128,6 +133,18 @@ export async function renderSettings() {
       toast.success('API key removed');
       renderSettings();
     }
+  });
+
+  // Theme toggle
+  document.getElementById('theme-toggle').addEventListener('click', async (e) => {
+    const btn = e.target.closest('.theme-toggle-btn');
+    if (!btn) return;
+    const theme = btn.dataset.theme;
+    await SettingsRepo.setPreferences({ theme });
+    document.querySelectorAll('.theme-toggle-btn').forEach(b => b.classList.toggle('active', b.dataset.theme === theme));
+    const subtitle = document.getElementById('theme-subtitle');
+    if (subtitle) subtitle.textContent = theme === 'dark' ? 'Dark mode on' : theme === 'light' ? 'Light mode on' : 'Follows system preference';
+    applyTheme(theme);
   });
 
   // Premium
