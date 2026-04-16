@@ -145,6 +145,72 @@
     border-radius: var(--radius-2xl);
     max-height: 85dvh;
   }
+
+  /* Sidebar Copilot button */
+  .sidebar-copilot-btn {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: 10px var(--space-3);
+    border-radius: var(--radius-md);
+    border: none;
+    background: var(--color-primary-bg);
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+    margin-top: var(--space-2);
+    transition: background var(--duration-fast);
+  }
+
+  .sidebar-copilot-btn:hover {
+    background: rgba(74, 124, 89, 0.15);
+  }
+
+  .sidebar-copilot-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-md);
+    background: var(--color-primary);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .sidebar-copilot-label {
+    font-size: var(--text-sm);
+    font-weight: var(--font-semibold);
+    color: var(--color-primary);
+    line-height: 1.2;
+  }
+
+  .sidebar-copilot-sub {
+    font-size: 11px;
+    color: var(--color-text-tertiary);
+    margin-top: 1px;
+  }
+
+  /* Hide FAB on desktop — use sidebar button instead */
+  .copilot-fab {
+    display: none !important;
+  }
+
+  /* Copilot panel on desktop: fixed side panel */
+  .copilot-panel {
+    top: var(--header-height);
+    right: 0;
+    bottom: 0;
+    left: unset;
+    width: 400px;
+    max-height: unset;
+    border-radius: var(--radius-xl) 0 0 var(--radius-xl);
+    transform: translateX(100%);
+  }
+
+  .copilot-panel.open {
+    transform: translateX(0);
+  }
 }
 
 /* Large Desktop (1280px+) */

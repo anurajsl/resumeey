@@ -150,6 +150,12 @@ function setupEvents() {
   backdrop.addEventListener('click', closePanel);
   closeBtn.addEventListener('click', closePanel);
 
+  // Sidebar button (desktop)
+  const sidebarBtn = document.getElementById('sidebar-copilot-btn');
+  if (sidebarBtn) {
+    sidebarBtn.addEventListener('click', () => isOpen ? closePanel() : openPanel());
+  }
+
   sendBtn.addEventListener('click', handleSend);
   input.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); }
@@ -180,11 +186,13 @@ async function openPanel() {
   const panel = document.getElementById('copilot-panel');
   const backdrop = document.getElementById('copilot-backdrop');
   const fab = document.getElementById('copilot-fab');
+  const sidebarBtn = document.getElementById('sidebar-copilot-btn');
 
   panel.classList.add('open');
   panel.setAttribute('aria-hidden', 'false');
   backdrop.classList.add('visible');
-  fab.classList.add('active');
+  fab?.classList.add('active');
+  sidebarBtn?.classList.add('active');
 
   // Load context and update header
   await refreshContextLine();
@@ -205,17 +213,20 @@ function closePanel() {
   const panel = document.getElementById('copilot-panel');
   const backdrop = document.getElementById('copilot-backdrop');
   const fab = document.getElementById('copilot-fab');
+  const sidebarBtn = document.getElementById('sidebar-copilot-btn');
 
   panel.classList.remove('open');
   panel.setAttribute('aria-hidden', 'true');
   backdrop.classList.remove('visible');
-  fab.classList.remove('active');
+  fab?.classList.remove('active');
+  sidebarBtn?.classList.remove('active');
 }
 
 function updateFabState() {
   const fab = document.getElementById('copilot-fab');
-  if (!fab) return;
-  fab.classList.toggle('no-ai', !aiAvailable);
+  fab?.classList.toggle('no-ai', !aiAvailable);
+  const sidebarBtn = document.getElementById('sidebar-copilot-btn');
+  sidebarBtn?.classList.toggle('no-ai', !aiAvailable);
 }
 
 async function updateContextBadge() {

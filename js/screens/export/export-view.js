@@ -15,7 +15,7 @@ const TEMPLATES = [
 
 export async function renderExportView() {
   const container = document.getElementById('screen-container');
-  document.getElementById('bottom-nav')?.style && (document.getElementById('bottom-nav').style.display = '';
+  const nav = document.getElementById('bottom-nav'); if (nav) nav.style.display = '';
 
   const [resume, isPremium] = await Promise.all([
     ResumeRepo.getMaster(),

@@ -16,7 +16,7 @@ const TONES = [
 
 export async function renderCoverLetter({ jobId }) {
   const container = document.getElementById('screen-container');
-  document.getElementById('bottom-nav')?.style && (document.getElementById('bottom-nav').style.display = '';
+  const nav = document.getElementById('bottom-nav'); if (nav) nav.style.display = '';
 
   const [job, resume] = await Promise.all([
     JobRepo.get(jobId),

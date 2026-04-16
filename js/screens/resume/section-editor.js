@@ -8,7 +8,7 @@ import { shortId } from '../../utils/formatters.js';
 
 export async function renderSectionEditor({ section }) {
   const container = document.getElementById('screen-container');
-  document.getElementById('bottom-nav')?.style && (document.getElementById('bottom-nav').style.display = '';
+  const nav = document.getElementById('bottom-nav'); if (nav) nav.style.display = '';
 
   const resume = await ResumeRepo.getMaster();
   if (!resume) {

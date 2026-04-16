@@ -11,7 +11,7 @@ import { AI_PROVIDER_LABELS } from '../../utils/constants.js';
 
 export async function renderSettings() {
   const container = document.getElementById('screen-container');
-  document.getElementById('bottom-nav')?.style && (document.getElementById('bottom-nav').style.display = '';
+  const nav = document.getElementById('bottom-nav'); if (nav) nav.style.display = '';
 
   const [aiConfig, premium, prefs] = await Promise.all([
     SettingsRepo.getAIConfig(),

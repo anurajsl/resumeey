@@ -18,7 +18,7 @@ const FEATURES = [
 
 export async function renderPremium() {
   const container = document.getElementById('screen-container');
-  document.getElementById('bottom-nav')?.style && (document.getElementById('bottom-nav').style.display = '';
+  const nav = document.getElementById('bottom-nav'); if (nav) nav.style.display = '';
 
   const isPremium = await PremiumService.isActive();
 

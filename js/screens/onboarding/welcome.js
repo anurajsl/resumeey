@@ -71,7 +71,7 @@ export function renderWelcome() {
   `;
 
   // Hide bottom nav on welcome
-  document.getElementById('bottom-nav')?.style && (document.getElementById('bottom-nav').style.display = 'none';
+  const nav = document.getElementById('bottom-nav'); if (nav) nav.style.display = 'none';
   document.getElementById('header-logo').style.display = 'flex';
 
   document.getElementById('btn-create-resume').addEventListener('click', async () => {

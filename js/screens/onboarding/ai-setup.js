@@ -37,7 +37,7 @@ const PROVIDERS = [
 
 export async function renderAISetup() {
   const container = document.getElementById('screen-container');
-  document.getElementById('bottom-nav')?.style && (document.getElementById('bottom-nav').style.display = 'none';
+  const nav = document.getElementById('bottom-nav'); if (nav) nav.style.display = 'none';
 
   let selectedProvider = AI_PROVIDERS.OPENAI;
   const existingConfig = await SettingsRepo.getAIConfig();
