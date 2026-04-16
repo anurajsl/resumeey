@@ -7,8 +7,13 @@ import { createSkeleton } from '../../components/loading-skeleton.js';
 import { scoreColorClass, timeAgo } from '../../utils/formatters.js';
 import { scoreBadge } from '../../components/score-ring.js';
 
-const STATUS_LABELS = { saved: 'Saved', applied: 'Applied', interview: 'Interview', offer: 'Offer', rejected: 'Rejected' };
-const STATUS_COLORS = { saved: 'var(--color-text-tertiary)', applied: '#2980B9', interview: '#8E44AD', offer: 'var(--color-primary)', rejected: 'var(--color-error)' };
+const STATUS_LABELS = { draft: 'Draft', saved: 'Saved', applied: 'Applied', interview: 'Interview', offer: 'Offer', rejected: 'Rejected' };
+const STATUS_COLORS = { draft: 'var(--color-text-tertiary)', saved: '#5E9B6E', applied: '#2980B9', interview: '#8E44AD', offer: 'var(--color-primary)', rejected: 'var(--color-error)' };
+
+// Map legacy 'active' status to 'saved'
+function normaliseStatus(status) {
+  return status === 'active' ? 'saved' : (status || 'draft');
+}
 
 let activeFilter = 'all';
 let sortMode = 'date';
@@ -24,7 +29,7 @@ export async function renderJobList() {
   const allJobs = await JobRepo.getAll();
 
   const renderList = () => {
-    let jobs = activeFilter === 'all' ? allJobs : allJobs.filter(j => (j.status || 'saved') === activeFilter);
+    let jobs = activeFilter === 'all' ? allJobs : allJobs.filter(j => (normaliseStatus(j.status)) === activeFilter);
 
     if (sortMode === 'score') {
       jobs = [...jobs].sort((a, b) => (b.matchResult?.overallScore ?? -1) - (a.matchResult?.overallScore ?? -1));
@@ -38,8 +43,8 @@ export async function renderJobList() {
   };
 
   const filterCounts = {};
-  ['all', 'saved', 'applied', 'interview', 'offer', 'rejected'].forEach(f => {
-    filterCounts[f] = f === 'all' ? allJobs.length : allJobs.filter(j => (j.status || 'saved') === f).length;
+  ['all', 'draft', 'saved', 'applied', 'interview', 'offer', 'rejected'].forEach(f => {
+    filterCounts[f] = f === 'all' ? allJobs.length : allJobs.filter(j => (normaliseStatus(j.status)) === f).length;
   });
 
   container.innerHTML = `
@@ -63,7 +68,7 @@ export async function renderJobList() {
 
       <!-- Filter tabs -->
       <div class="job-filter-tabs" id="job-filter-tabs">
-        ${['all', 'applied', 'interview', 'offer', 'rejected'].map(f => `
+        ${['all', 'draft', 'saved', 'applied', 'interview', 'offer', 'rejected'].map(f => `
           <button class="job-filter-tab ${activeFilter === f ? 'active' : ''}" data-filter="${f}">
             ${f === 'all' ? 'All' : STATUS_LABELS[f]}
             ${filterCounts[f] > 0 ? `<span class="job-filter-count">${filterCounts[f]}</span>` : ''}
@@ -119,8 +124,8 @@ function renderJobCard(job) {
   const colors = ['#4A7C59', '#2980B9', '#8E44AD', '#E67E22', '#C0392B'];
   const colorIdx = job.company?.charCodeAt(0) % colors.length || 0;
   const color = colors[colorIdx];
-  const status = job.status || 'saved';
-  const statusColor = STATUS_COLORS[status];
+  const status = normaliseStatus(job.status);
+  const statusColor = STATUS_COLORS[status] || STATUS_COLORS.draft;
 
   const scoreHTML = score != null ? `
     <div class="job-card-score">
@@ -141,7 +146,7 @@ function renderJobCard(job) {
       <div class="job-card-info">
         <div style="display:flex;align-items:center;gap:6px">
           <div class="job-card-title">${job.title}</div>
-          <span class="job-status-badge" style="color:${statusColor};border-color:${statusColor}20;background:${statusColor}12">${STATUS_LABELS[status]}</span>
+          <span class="job-status-badge" style="color:${statusColor};border-color:${statusColor}20;background:${statusColor}12">${STATUS_LABELS[status] || status}</span>
         </div>
         <div class="job-card-company">${job.company || 'Unknown'}${job.location ? ` · ${job.location}` : ''}</div>
         <div style="margin-top:4px;display:flex;gap:6px;flex-wrap:wrap">

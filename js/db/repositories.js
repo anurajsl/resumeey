@@ -118,7 +118,7 @@ export const JobRepo = {
       coverLetter: data.coverLetter || null,
       optimizationResult: data.optimizationResult || null,
       notes: data.notes || '',
-      status: data.status || 'active',
+      status: data.status || 'draft',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };

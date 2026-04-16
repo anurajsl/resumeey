@@ -53,7 +53,7 @@ export async function renderJobDetail({ id }) {
 
         <!-- Application Status Tracker -->
         <div class="status-tracker" id="status-tracker">
-          ${renderStatusSteps(job.status || 'saved')}
+          ${renderStatusSteps(normaliseStatus(job.status))}
         </div>
       </div>
 
@@ -220,8 +220,10 @@ export async function renderJobDetail({ id }) {
     // Auto-stamp applied date on first transition to applied
     if (newStatus === 'applied' && !job.appliedAt) {
       updates.appliedAt = new Date().toISOString();
+      job.appliedAt = updates.appliedAt;
     }
     await JobRepo.update(id, updates);
+    job.status = newStatus;
     document.getElementById('status-tracker').innerHTML = renderStatusSteps(newStatus);
     toast.info(`Status: ${STATUS_LABELS[newStatus]}`);
   });
@@ -307,6 +309,7 @@ function escHtml(s) {
 }
 
 const STATUS_LABELS = {
+  draft: 'Draft',
   saved: 'Saved',
   applied: 'Applied',
   interview: 'Interview',
@@ -314,7 +317,12 @@ const STATUS_LABELS = {
   rejected: 'Rejected',
 };
 
-const STATUS_ORDER = ['saved', 'applied', 'interview', 'offer'];
+// Normalise legacy 'active' status (pre-draft era)
+function normaliseStatus(status) {
+  return status === 'active' ? 'saved' : (status || 'draft');
+}
+
+const STATUS_ORDER = ['draft', 'saved', 'applied', 'interview', 'offer'];
 
 function renderStatusSteps(current) {
   const isRejected = current === 'rejected';
