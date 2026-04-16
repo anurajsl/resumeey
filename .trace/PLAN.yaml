@@ -1,22 +1,100 @@
 # ============================================================
 # TRACE — Backlog & Planning Tracker (PLAN.yaml)
 # ============================================================
-# Lightweight Kanban-style tracking. No UI needed.
 # Status: todo | in_progress | done | deferred
 # Priority: critical | high | medium | low
-# Updated by: trace gate end (planning reconciliation step)
 # ============================================================
 
-current_sprint: ""
+current_sprint: "S01"
 updated: "2026-04-16"
 
 items:
-  # Example:
-  # - id: ITEM-001
-  #   title: "Implement user authentication"
-  #   status: todo
-  #   priority: high
-  #   sprint: "S01"
-  #   discovered_in: ""
-  #   assigned_to: ""
-  #   notes: ""
+  - id: ITEM-001
+    title: "Offline optimization fallback (rule-based)"
+    status: done
+    priority: high
+    notes: "ruleBasedOptimize() in optimizer-service.js; useAI flag threaded through optimize-view.js"
+
+  - id: ITEM-002
+    title: "Job notes & application log"
+    status: done
+    priority: high
+    notes: "Auto-saved textarea on job detail, debounce 600ms, Saved indicator"
+
+  - id: ITEM-003
+    title: "Dark mode"
+    status: done
+    priority: high
+    notes: "[data-theme] CSS vars, 3-button toggle in settings, applyTheme() on startup"
+
+  - id: ITEM-004
+    title: "PWA install prompt"
+    status: done
+    priority: high
+    notes: "beforeinstallprompt banner, dismissible, localStorage key pwa-install-dismissed"
+
+  - id: ITEM-005
+    title: "Application Tracker fields (deadline/salary/recruiter)"
+    status: done
+    priority: medium
+    notes: "Collapsible Application Details card on job detail; appliedAt auto-stamped"
+
+  - id: ITEM-006
+    title: "Cover letter offline banner polish"
+    status: done
+    priority: low
+    notes: "Replaced premium-banner with offline-mode-banner; confirmed ATS already rule-based"
+
+  - id: ITEM-007
+    title: "Draft status as initial job state"
+    status: done
+    priority: medium
+    notes: "STATUS_ORDER now draft→saved→applied→interview→offer; legacy 'active' normalised"
+
+  - id: ITEM-008
+    title: "Modern and Minimal PDF export templates"
+    status: done
+    priority: medium
+    notes: "Modern: two-column sidebar layout. Minimal: typographic light-weight. All share helpers."
+
+  - id: ITEM-009
+    title: "Interview Story Bank"
+    status: done
+    priority: high
+    notes: "DB v2, StoryRepo, /stories/* routes, STAR editor, tag filter, job-detail overlap matching"
+
+  - id: ITEM-010
+    title: "Resume version tracking per application"
+    status: done
+    priority: medium
+    notes: "submittedResumeId on job; Version sent select in App Details; Sent badge in header"
+
+  - id: ITEM-011
+    title: "HANDOFF.md + PLAN.yaml fill-in"
+    status: done
+    priority: low
+    notes: "This file + HANDOFF.md filled with full project state"
+
+  - id: ITEM-012
+    title: "Copilot applyChange end-to-end smoke test"
+    status: todo
+    priority: medium
+    notes: "Verify applyChange() in copilot.js:581 writes through to IndexedDB with real AI key"
+
+  - id: ITEM-013
+    title: "section-editor.js split"
+    status: todo
+    priority: low
+    notes: "615 lines exceeds TRACE 500-line threshold; extract editor sub-modules"
+
+  - id: ITEM-014
+    title: "Tailored resume count on master resume screen"
+    status: todo
+    priority: low
+    notes: "Show N tailored versions badge on master resume screen with link"
+
+  - id: ITEM-015
+    title: "Confirm draft status default in add-job.js"
+    status: todo
+    priority: low
+    notes: "add-job.js does not set explicit status; confirm JobRepo.create() default 'draft' works"
