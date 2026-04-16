@@ -35,6 +35,17 @@ export async function renderJobDetail({ id }) {
   const score = job.matchResult?.overallScore;
   const kws = job.keywords || {};
 
+  // Load resumes for version tracking
+  const master = await ResumeRepo.getMaster();
+  const tailored = job.tailoredResumeId ? await ResumeRepo.get(job.tailoredResumeId) : null;
+  const resumeOptions = [
+    ...(master ? [{ id: master.id, name: 'Master Resume' }] : []),
+    ...(tailored ? [{ id: tailored.id, name: tailored.metadata?.jobTitle ? `Tailored — ${tailored.metadata.jobTitle}` : (tailored.name || 'Tailored Resume') }] : []),
+  ];
+  const submittedResume = job.submittedResumeId
+    ? resumeOptions.find(r => r.id === job.submittedResumeId)
+    : null;
+
   container.innerHTML = `
     <div class="animate-fade-up" style="padding-bottom:24px">
       <!-- Job header -->
@@ -47,6 +58,11 @@ export async function renderJobDetail({ id }) {
             <h2 style="font-size:20px;font-weight:700;color:var(--color-text);line-height:1.2">${job.title}</h2>
             <p style="font-size:14px;color:var(--color-text-secondary);margin-top:2px">${job.company || ''}${job.location ? ` · ${job.location}` : ''}</p>
             <p style="font-size:11px;color:var(--color-text-tertiary);margin-top:4px">Added ${timeAgo(job.createdAt)}</p>
+            ${submittedResume ? `
+            <a id="submitted-resume-badge" href="javascript:void(0)" style="display:inline-flex;align-items:center;gap:4px;margin-top:5px;font-size:11px;font-weight:600;color:var(--color-primary);text-decoration:none">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>
+              Sent: ${escHtml(submittedResume.name)}
+            </a>` : '<div id="submitted-resume-badge" style="display:none"></div>'}
           </div>
           ${score != null ? scoreBadge(score).outerHTML : ''}
         </div>
@@ -156,6 +172,14 @@ export async function renderJobDetail({ id }) {
                 <input type="email" id="app-recruiter-email" class="form-input" style="font-size:13px" placeholder="jane@company.com" value="${escHtml(job.recruiterEmail || '')}">
               </div>
             </div>
+            ${resumeOptions.length > 0 ? `
+            <div class="form-group" style="margin:10px 0 0">
+              <label class="form-label" style="font-size:11px">Version sent</label>
+              <select id="app-submitted-resume" class="form-input" style="font-size:13px">
+                <option value="">— not specified —</option>
+                ${resumeOptions.map(r => `<option value="${r.id}" ${job.submittedResumeId === r.id ? 'selected' : ''}>${escHtml(r.name)}</option>`).join('')}
+              </select>
+            </div>` : ''}
             <span id="app-details-saved" style="font-size:11px;color:var(--color-text-tertiary);opacity:0;transition:opacity 400ms;display:block;margin-top:8px">Saved</span>
           </div>
         </div>
@@ -225,6 +249,21 @@ export async function renderJobDetail({ id }) {
     document.getElementById(fieldId)?.addEventListener('input', saveAppDetails);
   });
 
+  // Version sent — immediate save on change + update header badge
+  document.getElementById('app-submitted-resume')?.addEventListener('change', async (e) => {
+    const resumeId = e.target.value || null;
+    await JobRepo.update(id, { submittedResumeId: resumeId });
+    job.submittedResumeId = resumeId;
+    updateSubmittedBadge(resumeId, resumeOptions);
+  });
+
+  // Submitted resume badge click → navigate to that resume
+  document.getElementById('submitted-resume-badge')?.addEventListener('click', () => {
+    if (!job.submittedResumeId) return;
+    const isTailored = tailored && job.submittedResumeId === tailored.id;
+    router.navigate(isTailored ? `/resume/tailored/${job.submittedResumeId}` : '/resume');
+  });
+
   // Status tracker
   document.getElementById('status-tracker').addEventListener('click', async (e) => {
     const btn = e.target.closest('.status-step');
@@ -235,6 +274,18 @@ export async function renderJobDetail({ id }) {
     if (newStatus === 'applied' && !job.appliedAt) {
       updates.appliedAt = new Date().toISOString();
       job.appliedAt = updates.appliedAt;
+    }
+    // Auto-fill submitted resume on first transition to applied
+    if (newStatus === 'applied' && !job.submittedResumeId && resumeOptions.length > 0) {
+      // Prefer tailored resume for this job, else master
+      const preferred = tailored ? tailored.id : (master ? master.id : null);
+      if (preferred) {
+        updates.submittedResumeId = preferred;
+        job.submittedResumeId = preferred;
+        const sel = document.getElementById('app-submitted-resume');
+        if (sel) sel.value = preferred;
+        updateSubmittedBadge(preferred, resumeOptions);
+      }
     }
     await JobRepo.update(id, updates);
     job.status = newStatus;
@@ -320,6 +371,20 @@ export async function renderJobDetail({ id }) {
   // Relevant stories — load async, show if matches found
   document.getElementById('btn-all-stories')?.addEventListener('click', () => router.navigate('/stories'));
   loadRelevantStories(job);
+}
+
+function updateSubmittedBadge(resumeId, resumeOptions) {
+  const badge = document.getElementById('submitted-resume-badge');
+  if (!badge) return;
+  const resume = resumeOptions.find(r => r.id === resumeId);
+  if (resume) {
+    badge.style.display = 'inline-flex';
+    badge.innerHTML = `
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>
+      Sent: ${escHtml(resume.name)}`;
+  } else {
+    badge.style.display = 'none';
+  }
 }
 
 async function loadRelevantStories(job) {
