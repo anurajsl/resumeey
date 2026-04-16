@@ -653,6 +653,24 @@
 
 .settings-item-right { color: var(--color-text-tertiary); }
 
+/* Shared offline/no-AI info banner */
+.offline-mode-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-medium);
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+.offline-mode-banner svg {
+  flex-shrink: 0;
+  color: var(--color-warning);
+}
+
 .theme-toggle {
   display: flex;
   gap: 4px;

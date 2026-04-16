@@ -53,15 +53,9 @@ export async function renderCoverLetter({ jobId }) {
       </div>
 
       ${!aiAvailable ? `
-      <div class="premium-banner" style="margin-bottom:16px">
-        <div class="premium-banner-icon">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-        </div>
-        <div class="premium-banner-text">
-          <div class="premium-banner-title">AI key recommended</div>
-          <div class="premium-banner-subtitle">Using template-based generation</div>
-        </div>
-        <button class="btn btn-sm btn-primary" id="btn-setup-ai">Setup AI</button>
+      <div class="offline-mode-banner" style="margin-bottom:16px">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span>No AI key — using template generation. <button class="btn-link" id="btn-setup-ai">Add AI key</button> for personalised letters.</span>
       </div>` : ''}
 
       <!-- Tone selector -->

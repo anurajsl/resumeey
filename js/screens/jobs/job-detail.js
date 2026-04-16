@@ -124,6 +124,43 @@ export async function renderJobDetail({ id }) {
         </div>
       </div>
 
+      <!-- Application Details -->
+      <div style="padding:0 16px 16px">
+        <div class="card">
+          <div class="card-header" id="app-details-header" style="cursor:pointer">
+            <span class="card-title">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              Application Details
+            </span>
+            <svg id="app-details-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="transition:transform 200ms"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+          <div id="app-details-body" class="card-body" style="display:none;padding-top:4px">
+            ${job.appliedAt ? `<p style="font-size:11px;color:var(--color-text-tertiary);margin-bottom:12px">Applied ${timeAgo(job.appliedAt)}</p>` : ''}
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+              <div class="form-group" style="margin:0">
+                <label class="form-label" style="font-size:11px">Deadline</label>
+                <input type="date" id="app-deadline" class="form-input" style="font-size:13px" value="${escHtml(job.deadline || '')}">
+              </div>
+              <div class="form-group" style="margin:0">
+                <label class="form-label" style="font-size:11px">Salary (expected)</label>
+                <input type="text" id="app-salary" class="form-input" style="font-size:13px" placeholder="e.g. $120k" value="${escHtml(job.salary || '')}">
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px">
+              <div class="form-group" style="margin:0">
+                <label class="form-label" style="font-size:11px">Recruiter name</label>
+                <input type="text" id="app-recruiter-name" class="form-input" style="font-size:13px" placeholder="Jane Smith" value="${escHtml(job.recruiterName || '')}">
+              </div>
+              <div class="form-group" style="margin:0">
+                <label class="form-label" style="font-size:11px">Recruiter email</label>
+                <input type="email" id="app-recruiter-email" class="form-input" style="font-size:13px" placeholder="jane@company.com" value="${escHtml(job.recruiterEmail || '')}">
+              </div>
+            </div>
+            <span id="app-details-saved" style="font-size:11px;color:var(--color-text-tertiary);opacity:0;transition:opacity 400ms;display:block;margin-top:8px">Saved</span>
+          </div>
+        </div>
+      </div>
+
       <!-- Danger zone -->
       <div style="padding:0 16px">
         <button class="btn btn-ghost" id="btn-delete-job" style="color:var(--color-error);width:100%">
@@ -149,12 +186,42 @@ export async function renderJobDetail({ id }) {
     saveNotes(e.target.value);
   });
 
+  // Application details toggle
+  document.getElementById('app-details-header').addEventListener('click', () => {
+    const body = document.getElementById('app-details-body');
+    const chevron = document.getElementById('app-details-chevron');
+    const isOpen = body.style.display !== 'none';
+    body.style.display = isOpen ? 'none' : '';
+    chevron.style.transform = isOpen ? '' : 'rotate(180deg)';
+  });
+
+  // Application details auto-save
+  const saveAppDetails = debounce(async () => {
+    await JobRepo.update(id, {
+      deadline: document.getElementById('app-deadline')?.value || '',
+      salary: document.getElementById('app-salary')?.value || '',
+      recruiterName: document.getElementById('app-recruiter-name')?.value || '',
+      recruiterEmail: document.getElementById('app-recruiter-email')?.value || '',
+    });
+    const ind = document.getElementById('app-details-saved');
+    if (ind) { ind.style.opacity = '1'; setTimeout(() => { ind.style.opacity = '0'; }, 1500); }
+  }, 600);
+
+  ['app-deadline', 'app-salary', 'app-recruiter-name', 'app-recruiter-email'].forEach(fieldId => {
+    document.getElementById(fieldId)?.addEventListener('input', saveAppDetails);
+  });
+
   // Status tracker
   document.getElementById('status-tracker').addEventListener('click', async (e) => {
     const btn = e.target.closest('.status-step');
     if (!btn) return;
     const newStatus = btn.dataset.status;
-    await JobRepo.update(id, { status: newStatus });
+    const updates = { status: newStatus };
+    // Auto-stamp applied date on first transition to applied
+    if (newStatus === 'applied' && !job.appliedAt) {
+      updates.appliedAt = new Date().toISOString();
+    }
+    await JobRepo.update(id, updates);
     document.getElementById('status-tracker').innerHTML = renderStatusSteps(newStatus);
     toast.info(`Status: ${STATUS_LABELS[newStatus]}`);
   });
