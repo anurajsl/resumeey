@@ -13,6 +13,7 @@ import { renderAISetup } from './screens/onboarding/ai-setup.js';
 import { renderCreateResume } from './screens/resume/create-resume.js';
 import { renderMasterResume } from './screens/resume/master-resume.js';
 import { renderSectionEditor } from './screens/resume/section-editor.js';
+import { renderTailoredResume } from './screens/resume/tailored-resume.js';
 import { renderJobList } from './screens/jobs/job-list.js';
 import { renderAddJob } from './screens/jobs/add-job.js';
 import { renderJobDetail } from './screens/jobs/job-detail.js';
@@ -109,6 +110,8 @@ function registerRoutes() {
   // Resume
   router.on('/resume/create', () => renderCreateResume());
   router.on('/resume/edit/:section', (params) => renderSectionEditor(params));
+  router.on('/resume/tailored/:resumeId', (params) => renderTailoredResume(params));
+  router.on('/resume/:resumeId/edit/:section', (params) => renderSectionEditor(params));
   router.on('/resume', () => renderMasterResume());
 
   // Jobs
@@ -124,6 +127,7 @@ function registerRoutes() {
   router.on('/cover-letter/:jobId', (params) => renderCoverLetter(params));
 
   // Export
+  router.on('/export/:resumeId', (params) => renderExportView(params));
   router.on('/export', () => renderExportView());
 
   // Settings & premium

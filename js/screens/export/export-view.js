@@ -1,7 +1,7 @@
 /* Export Screen */
 
 import { router } from '../../router.js';
-import { ResumeRepo } from '../../db/repositories.js';
+import { ResumeRepo, JobRepo } from '../../db/repositories.js';
 import { exportToPDF, buildResumeHTML } from '../../services/export-service.js';
 import { PremiumService } from '../../services/premium-service.js';
 import { toast } from '../../components/toast.js';
@@ -13,14 +13,19 @@ const TEMPLATES = [
   { id: 'minimal', name: 'Minimal', preview: previewMinimal() },
 ];
 
-export async function renderExportView() {
+export async function renderExportView({ resumeId } = {}) {
   const container = document.getElementById('screen-container');
   const nav = document.getElementById('bottom-nav'); if (nav) nav.style.display = '';
 
-  const [resume, isPremium] = await Promise.all([
+  const [masterResume, isPremium] = await Promise.all([
     ResumeRepo.getMaster(),
     PremiumService.isActive(),
   ]);
+
+  // Resolve which resume to export (specific tailored or master)
+  const specificResume = resumeId ? await ResumeRepo.get(resumeId) : null;
+  const resume = specificResume || masterResume;
+  const isTailored = specificResume?.type === 'tailored';
 
   if (!resume) {
     container.innerHTML = '';
@@ -35,12 +40,39 @@ export async function renderExportView() {
 
   let selectedTemplate = 'classic';
 
+  const jobId = specificResume?.metadata?.jobId;
+  const job = jobId ? await JobRepo.get(jobId).catch(() => null) : null;
+  const tailoredVersions = masterResume ? await ResumeRepo.getTailored(masterResume.id) : [];
+
   container.innerHTML = `
     <div class="export-screen animate-fade-up">
-      <div style="margin-bottom:20px">
+      <div style="margin-bottom:16px">
         <h2 class="page-title">Export Resume</h2>
         <p class="page-subtitle">${resume.sections?.contact?.name ? `for ${resume.sections.contact.name}` : ''}</p>
       </div>
+
+      <!-- Resume version selector -->
+      ${(masterResume && tailoredVersions.length > 0) ? `
+      <div style="padding:0 0 16px">
+        <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-text-secondary);margin-bottom:8px">Export Version</p>
+        <div class="export-version-tabs">
+          <button class="export-version-tab ${!isTailored ? 'active' : ''}" id="btn-export-master">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>
+            Master Resume
+          </button>
+          ${tailoredVersions.map(t => `
+          <button class="export-version-tab ${isTailored && resume.id === t.id ? 'active' : ''}" data-tailored-id="${t.id}">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            ${t.metadata?.jobTitle || t.name}
+          </button>`).join('')}
+        </div>
+      </div>` : isTailored ? `
+      <div class="tailored-export-banner">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        Exporting tailored version${job ? ` for ${job.title}` : ''}
+        <button class="btn-link" id="btn-switch-master">Switch to Master</button>
+      </div>` : ''}
+
 
       <!-- Template gallery -->
       <div style="margin-bottom:20px">
@@ -97,6 +129,13 @@ export async function renderExportView() {
       </p>
     </div>
   `;
+
+  // Version switcher
+  document.getElementById('btn-export-master')?.addEventListener('click', () => router.navigate('/export'));
+  document.getElementById('btn-switch-master')?.addEventListener('click', () => router.navigate('/export'));
+  container.querySelectorAll('[data-tailored-id]').forEach(btn => {
+    btn.addEventListener('click', () => router.navigate(`/export/${btn.dataset.tailoredId}`));
+  });
 
   let previewOpen = false;
 

@@ -1,7 +1,7 @@
 # TRACE Session Context
-_Auto-generated at 2026-04-16 04:28:41_
+_Auto-generated at 2026-04-16 04:42:33_
 
-## Anchors (8 total)
+## Anchors (12 total)
 
 ### db_schema
 - **File:** js/db/repositories.js
@@ -42,6 +42,24 @@ _Auto-generated at 2026-04-16 04:28:41_
 - **File:** js/services/premium-service.js
 - **Description:** Premium tier gating — used by all screens that have paid features
 - **Consumers (4):** js/screens/resume/create-resume.js, js/screens/jobs/add-job.js, js/screens/export/export-view.js, js/app.js
+
+### toast
+- **File:** js/components/toast.js
+- **Description:** Toast notification component — used across all screens for feedback
+
+### formatters
+- **File:** js/utils/formatters.js
+- **Description:** Shared utility formatters (timeAgo, scoreColorClass, shortId, etc.)
+
+### score_ring
+- **File:** js/components/score-ring.js
+- **Description:** Score ring/badge component for match scores
+- **Consumers (4):** js/screens/jobs/job-list.js, js/screens/jobs/job-detail.js, js/screens/match/match-dashboard.js, js/screens/optimize/optimize-view.js
+
+### export_service
+- **File:** js/services/export-service.js
+- **Description:** PDF export service and resume HTML builder
+- **Consumers (1):** js/screens/export/export-view.js
 
 ## Rules
 

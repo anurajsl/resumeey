@@ -6,15 +6,20 @@ import { toast } from '../../components/toast.js';
 import { debounce } from '../../utils/debounce.js';
 import { shortId } from '../../utils/formatters.js';
 
-export async function renderSectionEditor({ section }) {
+export async function renderSectionEditor({ section, resumeId, backTo }) {
   const container = document.getElementById('screen-container');
   const nav = document.getElementById('bottom-nav'); if (nav) nav.style.display = '';
 
-  const resume = await ResumeRepo.getMaster();
+  const resume = resumeId
+    ? await ResumeRepo.get(resumeId)
+    : await ResumeRepo.getMaster();
+
   if (!resume) {
     router.navigate('/resume/create');
     return;
   }
+
+  const backRoute = backTo || (resume.type === 'tailored' ? `/resume/tailored/${resume.id}` : '/resume');
 
   const sections = resume.sections || {};
   let data = sections[section];
@@ -48,7 +53,7 @@ export async function renderSectionEditor({ section }) {
     back.onclick = () => {
       headerTitle?.classList.remove('visible');
       back.style.display = 'none';
-      router.navigate('/resume');
+      router.navigate(backRoute);
     };
   }
 
@@ -82,11 +87,11 @@ export async function renderSectionEditor({ section }) {
 
   document.getElementById('btn-save-section').addEventListener('click', async () => {
     await saveCurrentSection();
-    router.navigate('/resume');
+    router.navigate(backRoute);
   });
 
   document.getElementById('btn-cancel-section').addEventListener('click', () => {
-    router.navigate('/resume');
+    router.navigate(backRoute);
   });
 
   async function saveCurrentSection() {

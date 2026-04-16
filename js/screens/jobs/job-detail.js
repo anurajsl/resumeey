@@ -1,7 +1,7 @@
 /* Job Detail Screen */
 
 import { router } from '../../router.js';
-import { JobRepo } from '../../db/repositories.js';
+import { JobRepo, ResumeRepo } from '../../db/repositories.js';
 import { confirmModal } from '../../components/modal.js';
 import { toast } from '../../components/toast.js';
 import { timeAgo } from '../../utils/formatters.js';
@@ -74,6 +74,12 @@ export async function renderJobDetail({ id }) {
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
           Cover Letter
         </button>
+
+        <!-- Tailor Resume — full-width CTA -->
+        <button class="btn ${job.tailoredResumeId ? 'btn-outline' : 'btn-gold'}" id="btn-tailor" style="grid-column:1/-1">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          ${job.tailoredResumeId ? 'View Tailored Resume' : 'Create Tailored Resume'}
+        </button>
       </div>
 
       <!-- Keywords -->
@@ -121,6 +127,49 @@ export async function renderJobDetail({ id }) {
   document.getElementById('btn-optimize').addEventListener('click', () => router.navigate(`/optimize/${id}`));
   document.getElementById('btn-ats').addEventListener('click', () => router.navigate(`/ats/${id}`));
   document.getElementById('btn-cover-letter').addEventListener('click', () => router.navigate(`/cover-letter/${id}`));
+
+  document.getElementById('btn-tailor').addEventListener('click', async () => {
+    // If tailored resume already exists, navigate to it
+    if (job.tailoredResumeId) {
+      router.navigate(`/resume/tailored/${job.tailoredResumeId}`);
+      return;
+    }
+
+    // Fork master resume
+    const master = await ResumeRepo.getMaster();
+    if (!master) { toast.error('Create a master resume first'); return; }
+
+    const btn = document.getElementById('btn-tailor');
+    btn.disabled = true;
+    btn.textContent = 'Creating…';
+
+    try {
+      const tailored = await ResumeRepo.create({
+        name: `${job.title}${job.company ? ' @ ' + job.company : ''} — Tailored`,
+        type: 'tailored',
+        parentId: master.id,
+        sections: JSON.parse(JSON.stringify(master.sections)),
+        metadata: {
+          sourceType: 'tailored',
+          jobId: id,
+          jobTitle: job.title,
+          jobCompany: job.company || '',
+          version: 1,
+          parseConfidence: 1,
+        },
+      });
+
+      // Link tailored resume to job
+      await JobRepo.update(id, { tailoredResumeId: tailored.id });
+
+      toast.success('Tailored resume created!');
+      router.navigate(`/resume/tailored/${tailored.id}`);
+    } catch (err) {
+      toast.error('Failed to create tailored resume: ' + err.message);
+      btn.disabled = false;
+      btn.textContent = 'Create Tailored Resume';
+    }
+  });
 
   // Toggle description
   document.getElementById('btn-toggle-desc').addEventListener('click', () => {

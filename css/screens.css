@@ -1138,3 +1138,142 @@
     height: 620px;
   }
 }
+
+/* ============================
+   Tailored Resume Screen
+   ============================ */
+
+.tailored-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 16px 0;
+  padding: 12px 14px;
+  background: var(--color-gold-bg, rgba(196, 163, 90, 0.10));
+  border: 1px solid rgba(196, 163, 90, 0.3);
+  border-radius: var(--radius-lg);
+}
+
+.tailored-banner-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  background: var(--color-gold, #C4A35A);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.tailored-banner-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-gold, #C4A35A);
+  line-height: 1;
+  margin-bottom: 2px;
+}
+
+.tailored-banner-job {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tailored-diff-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
+  background: var(--color-primary-bg);
+  color: var(--color-primary);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.tailored-diff-badge--none {
+  background: var(--color-bg-secondary);
+  color: var(--color-text-tertiary);
+}
+
+/* Section modified state */
+.section-card--modified {
+  border-color: var(--color-primary);
+  border-left: 3px solid var(--color-primary);
+}
+
+.section-modified-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: var(--radius-full);
+  background: var(--color-primary-bg);
+  color: var(--color-primary);
+  margin-left: 6px;
+}
+
+/* Export version tabs */
+.export-version-tabs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.export-version-tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: var(--radius-full);
+  border: 1.5px solid var(--color-border);
+  background: var(--color-surface);
+  font-size: 13px;
+  font-weight: var(--font-medium);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all var(--duration-fast);
+  white-space: nowrap;
+}
+
+.export-version-tab:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.export-version-tab.active {
+  background: var(--color-primary-bg);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  font-weight: var(--font-semibold);
+}
+
+.tailored-export-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: var(--radius-lg);
+  background: rgba(196, 163, 90, 0.1);
+  border: 1px solid rgba(196, 163, 90, 0.25);
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  margin-bottom: 16px;
+}
+
+.btn-link {
+  background: none;
+  border: none;
+  color: var(--color-primary);
+  font-size: 13px;
+  font-weight: var(--font-semibold);
+  cursor: pointer;
+  padding: 0;
+  margin-left: auto;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
