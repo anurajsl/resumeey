@@ -1,7 +1,7 @@
 /* Settings Screen */
 
 import { router } from '../../router.js';
-import { SettingsRepo, ResumeRepo, JobRepo } from '../../db/repositories.js';
+import { SettingsRepo, ResumeRepo, JobRepo, StoryRepo } from '../../db/repositories.js';
 import { PremiumService } from '../../services/premium-service.js';
 import { confirmModal } from '../../components/modal.js';
 import { toast } from '../../components/toast.js';
@@ -84,6 +84,21 @@ export async function renderSettings() {
         </div>
       </div>
 
+      <!-- Interview Prep -->
+      <h3 style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--color-text-secondary);margin-bottom:8px">Interview Prep</h3>
+      <div class="settings-group" style="margin-bottom:20px">
+        <div class="settings-item" id="settings-story-bank">
+          <div class="settings-item-icon" style="background:var(--color-primary-bg)">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          </div>
+          <div class="settings-item-text">
+            <div class="settings-item-title">Story Bank</div>
+            <div class="settings-item-subtitle" id="story-bank-subtitle">Loading…</div>
+          </div>
+          <svg class="settings-item-right" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+      </div>
+
       <!-- Data Management -->
       <h3 style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--color-text-secondary);margin-bottom:8px">Data</h3>
       <div class="settings-group" style="margin-bottom:20px">
@@ -150,10 +165,18 @@ export async function renderSettings() {
   // Premium
   document.getElementById('settings-premium').addEventListener('click', () => router.navigate('/premium'));
 
+  // Story Bank — load count async then update subtitle
+  document.getElementById('settings-story-bank').addEventListener('click', () => router.navigate('/stories'));
+  StoryRepo.getAll().then(stories => {
+    const el = document.getElementById('story-bank-subtitle');
+    if (el) el.textContent = stories.length === 0 ? 'No stories yet — add STAR stories' : `${stories.length} stor${stories.length === 1 ? 'y' : 'ies'} saved`;
+  }).catch(() => {});
+
+
   // Export data
   document.getElementById('settings-export-data').addEventListener('click', async () => {
-    const [resumes, jobs] = await Promise.all([ResumeRepo.getAll(), JobRepo.getAll()]);
-    const data = { resumes, jobs, exportedAt: new Date().toISOString() };
+    const [resumes, jobs, stories] = await Promise.all([ResumeRepo.getAll(), JobRepo.getAll(), StoryRepo.getAll()]);
+    const data = { resumes, jobs, stories, exportedAt: new Date().toISOString() };
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -173,7 +196,7 @@ export async function renderSettings() {
       danger: true,
     });
     if (confirmed) {
-      await Promise.all([ResumeRepo.clear(), JobRepo.clear()]);
+      await Promise.all([ResumeRepo.clear(), JobRepo.clear(), StoryRepo.clear()]);
       toast.success('All data cleared');
       router.navigate('/welcome');
     }

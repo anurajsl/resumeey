@@ -1385,3 +1385,150 @@
   color: var(--color-text-tertiary);
   flex-shrink: 0;
 }
+
+/* ============================
+   Story Bank
+   ============================ */
+
+.story-bank-intro {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0 16px 12px;
+  padding: 10px 12px;
+  background: var(--color-primary-bg);
+  border-radius: var(--radius-md);
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+
+.story-bank-intro svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: var(--color-primary);
+}
+
+.story-tag-filter {
+  display: flex;
+  gap: 6px;
+  padding: 0 16px 12px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.story-tag-filter::-webkit-scrollbar { display: none; }
+
+.story-tag-btn {
+  display: flex;
+  align-items: center;
+  padding: 5px 12px;
+  border-radius: var(--radius-full);
+  border: 1.5px solid var(--color-border);
+  background: var(--color-surface);
+  font-size: 12px;
+  font-weight: var(--font-medium);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all var(--duration-fast);
+}
+
+.story-tag-btn:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.story-tag-btn.active {
+  background: var(--color-primary-bg);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  font-weight: var(--font-semibold);
+}
+
+.story-card {
+  margin: 0 16px 10px;
+  padding: 14px 16px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: border-color var(--duration-fast), box-shadow var(--duration-fast);
+}
+
+.story-card:hover {
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-sm);
+}
+
+.story-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.story-card-title {
+  font-size: 14px;
+  font-weight: var(--font-semibold);
+  color: var(--color-text);
+  line-height: 1.3;
+}
+
+.story-card-preview {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+  margin-bottom: 8px;
+}
+
+.story-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+/* Story editor */
+
+.star-field-label {
+  font-size: 13px;
+  font-weight: var(--font-semibold);
+  color: var(--color-text);
+  display: block;
+}
+
+.star-field-hint {
+  display: block;
+  font-size: 11px;
+  color: var(--color-text-tertiary);
+  margin-top: 1px;
+  line-height: 1.4;
+}
+
+.story-tags-preview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 8px;
+  min-height: 4px;
+}
+
+/* Relevant stories on job detail */
+
+.relevant-story-item {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--color-border);
+  cursor: pointer;
+  transition: opacity var(--duration-fast);
+}
+
+.relevant-story-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.relevant-story-item:hover {
+  opacity: 0.8;
+}

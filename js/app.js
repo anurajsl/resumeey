@@ -25,6 +25,8 @@ import { renderCoverLetter } from './screens/cover-letter/cover-letter.js';
 import { renderExportView } from './screens/export/export-view.js';
 import { renderSettings } from './screens/settings/settings.js';
 import { renderPremium } from './screens/premium/premium.js';
+import { renderStoryBank } from './screens/stories/story-bank.js';
+import { renderStoryEditor } from './screens/stories/story-editor.js';
 import { initCopilot } from './components/copilot.js';
 
 async function init() {
@@ -141,6 +143,11 @@ function registerRoutes() {
   router.on('/settings', () => renderSettings());
   router.on('/premium', () => renderPremium());
 
+  // Story Bank
+  router.on('/stories/add', () => renderStoryEditor({}));
+  router.on('/stories/:id', (params) => renderStoryEditor(params));
+  router.on('/stories', () => renderStoryBank());
+
   // 404 — redirect to resume
   router.notFound((path) => {
     console.warn('Route not found:', path);
@@ -154,7 +161,7 @@ function isRouteActive(itemRoute, path) {
     (itemRoute === '/jobs' && (path === '/jobs' || path.startsWith('/jobs/'))) ||
     (itemRoute === '/match' && (path.startsWith('/match/') || path.startsWith('/optimize/') || path.startsWith('/ats/') || path.startsWith('/cover-letter/'))) ||
     (itemRoute === '/export' && path === '/export') ||
-    (itemRoute === '/settings' && (path === '/settings' || path === '/premium'));
+    (itemRoute === '/settings' && (path === '/settings' || path === '/premium' || path.startsWith('/stories')));
 }
 
 function setupBottomNav() {

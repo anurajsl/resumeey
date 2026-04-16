@@ -39,6 +39,12 @@ export async function openDB() {
         auditStore.createIndex('timestamp', 'timestamp', { unique: false });
         auditStore.createIndex('type', 'type', { unique: false });
       }
+
+      // Stories store (v2)
+      if (!db.objectStoreNames.contains('stories')) {
+        const storyStore = db.createObjectStore('stories', { keyPath: 'id' });
+        storyStore.createIndex('createdAt', 'createdAt', { unique: false });
+      }
     };
 
     request.onsuccess = (event) => {

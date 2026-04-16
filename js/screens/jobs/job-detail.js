@@ -1,7 +1,7 @@
 /* Job Detail Screen */
 
 import { router } from '../../router.js';
-import { JobRepo, ResumeRepo } from '../../db/repositories.js';
+import { JobRepo, ResumeRepo, StoryRepo } from '../../db/repositories.js';
 import { confirmModal } from '../../components/modal.js';
 import { toast } from '../../components/toast.js';
 import { timeAgo } from '../../utils/formatters.js';
@@ -161,6 +161,20 @@ export async function renderJobDetail({ id }) {
         </div>
       </div>
 
+      <!-- Relevant Stories -->
+      <div id="relevant-stories-section" style="padding:0 16px 16px;display:none">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              Relevant Stories
+            </span>
+            <button class="btn-link" id="btn-all-stories" style="font-size:11px">All Stories</button>
+          </div>
+          <div class="card-body" style="padding-top:4px" id="relevant-stories-list"></div>
+        </div>
+      </div>
+
       <!-- Danger zone -->
       <div style="padding:0 16px">
         <button class="btn btn-ghost" id="btn-delete-job" style="color:var(--color-error);width:100%">
@@ -301,6 +315,57 @@ export async function renderJobDetail({ id }) {
       back.style.display = 'none';
       router.navigate('/jobs');
     }
+  });
+
+  // Relevant stories — load async, show if matches found
+  document.getElementById('btn-all-stories')?.addEventListener('click', () => router.navigate('/stories'));
+  loadRelevantStories(job);
+}
+
+async function loadRelevantStories(job) {
+  const section = document.getElementById('relevant-stories-section');
+  const listEl = document.getElementById('relevant-stories-list');
+  if (!section || !listEl) return;
+
+  // Build tag pool from job keywords
+  const kws = job.keywords || {};
+  const jobTags = [
+    ...(kws.required || []),
+    ...(kws.skills || []),
+    ...(kws.preferred || []),
+    ...(kws.softSkills || []),
+  ].map(t => t.toLowerCase());
+
+  const allStories = await StoryRepo.getAll();
+  if (!allStories.length) return;
+
+  // Score by tag overlap
+  const scored = allStories
+    .map(s => {
+      const storyTags = s.tags.map(t => t.toLowerCase());
+      const overlap = storyTags.filter(t => jobTags.some(jt => jt.includes(t) || t.includes(jt))).length;
+      return { story: s, overlap };
+    })
+    .filter(({ overlap }) => overlap > 0)
+    .sort((a, b) => b.overlap - a.overlap)
+    .slice(0, 3);
+
+  if (!scored.length) return;
+
+  section.style.display = '';
+  listEl.innerHTML = scored.map(({ story }) => `
+    <div class="relevant-story-item" data-story-id="${story.id}">
+      <div style="font-size:13px;font-weight:600;color:var(--color-text)">${story.title || 'Untitled story'}</div>
+      ${story.result ? `<div style="font-size:12px;color:var(--color-text-secondary);margin-top:2px;line-height:1.4">${story.result.slice(0, 80)}${story.result.length > 80 ? '…' : ''}</div>` : ''}
+      <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px">
+        ${story.tags.map(t => `<span class="tag tag-neutral" style="font-size:10px">${escHtml(t)}</span>`).join('')}
+      </div>
+    </div>
+  `).join('');
+
+  listEl.addEventListener('click', (e) => {
+    const item = e.target.closest('.relevant-story-item');
+    if (item) router.navigate(`/stories/${item.dataset.storyId}`);
   });
 }
 
