@@ -145,16 +145,20 @@ function renderJobCard(job) {
       </div>
       <div class="job-card-info">
         <div style="display:flex;align-items:center;gap:6px">
-          <div class="job-card-title">${job.title}</div>
+          <div class="job-card-title">${escHtml(job.title)}</div>
           <span class="job-status-badge" style="color:${statusColor};border-color:${statusColor}20;background:${statusColor}12">${STATUS_LABELS[status] || status}</span>
         </div>
-        <div class="job-card-company">${job.company || 'Unknown'}${job.location ? ` · ${job.location}` : ''}</div>
+        <div class="job-card-company">${escHtml(job.company || 'Unknown')}${job.location ? ` · ${escHtml(job.location)}` : ''}</div>
         <div style="margin-top:4px;display:flex;gap:6px;flex-wrap:wrap">
-          ${(job.keywords?.skills || []).slice(0, 3).map(s => `<span class="tag tag-neutral" style="font-size:10px">${s}</span>`).join('')}
+          ${(job.keywords?.skills || []).slice(0, 3).map(s => `<span class="tag tag-neutral" style="font-size:10px">${escHtml(s)}</span>`).join('')}
         </div>
         <div style="font-size:11px;color:var(--color-text-tertiary);margin-top:4px">${timeAgo(job.createdAt)}</div>
       </div>
       ${scoreHTML}
     </div>
   `;
+}
+
+function escHtml(s) {
+  return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }

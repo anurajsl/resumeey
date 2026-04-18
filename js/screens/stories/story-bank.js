@@ -105,14 +105,18 @@ function renderStoryCard(story) {
   return `
     <div class="story-card" data-story-id="${story.id}">
       <div class="story-card-header">
-        <div class="story-card-title">${story.title || 'Untitled story'}</div>
+        <div class="story-card-title">${escHtml(story.title || 'Untitled story')}</div>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--color-text-tertiary);flex-shrink:0"><polyline points="9 18 15 12 9 6"/></svg>
       </div>
-      ${preview ? `<p class="story-card-preview">${preview.slice(0, 100)}${preview.length > 100 ? '…' : ''}</p>` : ''}
+      ${preview ? `<p class="story-card-preview">${escHtml(preview.slice(0, 100))}${preview.length > 100 ? '…' : ''}</p>` : ''}
       ${story.tags.length > 0 ? `
       <div class="story-card-tags">
-        ${story.tags.map(t => `<span class="tag tag-neutral" style="font-size:10px">${t}</span>`).join('')}
+        ${story.tags.map(t => `<span class="tag tag-neutral" style="font-size:10px">${escHtml(t)}</span>`).join('')}
       </div>` : ''}
     </div>
   `;
+}
+
+function escHtml(s) {
+  return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }

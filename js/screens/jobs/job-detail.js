@@ -55,8 +55,8 @@ export async function renderJobDetail({ id }) {
             ${(job.company || '?').slice(0, 2).toUpperCase()}
           </div>
           <div style="flex:1">
-            <h2 style="font-size:20px;font-weight:700;color:var(--color-text);line-height:1.2">${job.title}</h2>
-            <p style="font-size:14px;color:var(--color-text-secondary);margin-top:2px">${job.company || ''}${job.location ? ` · ${job.location}` : ''}</p>
+            <h2 style="font-size:20px;font-weight:700;color:var(--color-text);line-height:1.2">${escHtml(job.title)}</h2>
+            <p style="font-size:14px;color:var(--color-text-secondary);margin-top:2px">${escHtml(job.company || '')}${job.location ? ` · ${escHtml(job.location)}` : ''}</p>
             <p style="font-size:11px;color:var(--color-text-tertiary);margin-top:4px">Added ${timeAgo(job.createdAt)}</p>
             ${submittedResume ? `
             <a id="submitted-resume-badge" href="javascript:void(0)" style="display:inline-flex;align-items:center;gap:4px;margin-top:5px;font-size:11px;font-weight:600;color:var(--color-primary);text-decoration:none">
@@ -420,8 +420,8 @@ async function loadRelevantStories(job) {
   section.style.display = '';
   listEl.innerHTML = scored.map(({ story }) => `
     <div class="relevant-story-item" data-story-id="${story.id}">
-      <div style="font-size:13px;font-weight:600;color:var(--color-text)">${story.title || 'Untitled story'}</div>
-      ${story.result ? `<div style="font-size:12px;color:var(--color-text-secondary);margin-top:2px;line-height:1.4">${story.result.slice(0, 80)}${story.result.length > 80 ? '…' : ''}</div>` : ''}
+      <div style="font-size:13px;font-weight:600;color:var(--color-text)">${escHtml(story.title || 'Untitled story')}</div>
+      ${story.result ? `<div style="font-size:12px;color:var(--color-text-secondary);margin-top:2px;line-height:1.4">${escHtml(story.result.slice(0, 80))}${story.result.length > 80 ? '…' : ''}</div>` : ''}
       <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px">
         ${story.tags.map(t => `<span class="tag tag-neutral" style="font-size:10px">${escHtml(t)}</span>`).join('')}
       </div>
