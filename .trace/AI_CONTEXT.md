@@ -1,5 +1,7 @@
 # TRACE Session Context
-_Auto-generated at 2026-04-16 04:42:33_
+_Auto-generated at 2026-04-18 17:36:00_
+
+## Current Sprint: S01
 
 ## Anchors (12 total)
 
@@ -71,12 +73,19 @@ _Auto-generated at 2026-04-16 04:42:33_
 ## Recent Handoff (last 3)
 
 ## Anchor Health
-<!-- Which anchors are stale, which were recently updated -->
+
+All 12 anchors healthy. One known stale consumer entry:
+- `score_ring → js/screens/optimize/optimize-view.js` — scoreBadge no longer imported there; remove from trace.yaml consumers list on next housekeeping pass.
 
 ## Next Steps (Priority Order)
-1. 
-2. 
-3.
+
+1. **Copilot end-to-end smoke test** — verify `applyChange()` in `js/components/copilot.js:581` writes through to IndexedDB correctly with a real AI key
+2. **section-editor.js split** — 615 lines exceeds TRACE threshold (500); consider extracting `renderExperienceEditor`, `renderEducationEditor`, `renderSkillsEditor` into separate files
+3. **Draft status on add-job** — confirm `add-job.js` correctly inherits `status: 'draft'` default from `JobRepo.create()`; no explicit status set in that screen
+4. **Tailored resume count on master screen** — master resume screen could show "N tailored versions" badge with link to the first one
 
 ## Don't Touch
-<!-- Files or systems that should NOT be modified right now and why -->
+
+- `js/services/ai-service.js` — handles encryption/decryption of API keys and provider routing; do not refactor without testing all three providers end-to-end
+- `js/db/database.js` `onupgradeneeded` — fragile; always guard with `objectStoreNames.contains()` check
+- `css/variables.css` dark mode block — `@media` uses `:root:not([data-theme="light"])` so manual light override works on dark-system devices; do not simplify this

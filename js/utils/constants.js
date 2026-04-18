@@ -3,7 +3,7 @@
 export const APP_NAME = 'Resumey';
 export const APP_VERSION = '1.0.0';
 export const DB_NAME = 'resumey-db';
-export const DB_VERSION = 1;
+export const DB_VERSION = 2;
 
 // Routes
 export const ROUTES = {

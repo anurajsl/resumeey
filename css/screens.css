@@ -653,6 +653,51 @@
 
 .settings-item-right { color: var(--color-text-tertiary); }
 
+/* Shared offline/no-AI info banner */
+.offline-mode-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-medium);
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+.offline-mode-banner svg {
+  flex-shrink: 0;
+  color: var(--color-warning);
+}
+
+.theme-toggle {
+  display: flex;
+  gap: 4px;
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-sm);
+  padding: 3px;
+}
+
+.theme-toggle-btn {
+  flex: 1;
+  padding: 5px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: background var(--duration-fast), color var(--duration-fast);
+}
+
+.theme-toggle-btn.active {
+  background: var(--color-surface);
+  color: var(--color-text);
+  box-shadow: var(--shadow-xs);
+}
+
 /* ============================
    Premium Screen
    ============================ */
@@ -1276,4 +1321,214 @@
   margin-left: auto;
   text-decoration: underline;
   text-underline-offset: 2px;
+}
+
+/* ============================
+   PWA Install Banner
+   ============================ */
+
+#pwa-install-banner {
+  position: fixed;
+  bottom: calc(var(--bottom-nav-height, 68px) + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 32px);
+  max-width: 480px;
+  z-index: 1000;
+  animation: slideUpFade 0.3s var(--ease-out) both;
+}
+
+#pwa-install-banner.pwa-install-hide {
+  animation: slideDownFade 0.3s var(--ease-in-out) both;
+}
+
+@keyframes slideUpFade {
+  from { opacity: 0; transform: translateX(-50%) translateY(16px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+@keyframes slideDownFade {
+  from { opacity: 1; transform: translateX(-50%) translateY(0); }
+  to   { opacity: 0; transform: translateX(-50%) translateY(16px); }
+}
+
+.pwa-install-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-medium);
+  border-radius: var(--radius-lg);
+  padding: 12px 14px;
+  box-shadow: var(--shadow-lg);
+}
+
+.pwa-install-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.pwa-install-text strong {
+  font-size: 13px;
+  font-weight: var(--font-semibold);
+  color: var(--color-text);
+}
+
+.pwa-install-text span {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.pwa-install-dismiss {
+  color: var(--color-text-tertiary);
+  flex-shrink: 0;
+}
+
+/* ============================
+   Story Bank
+   ============================ */
+
+.story-bank-intro {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0 16px 12px;
+  padding: 10px 12px;
+  background: var(--color-primary-bg);
+  border-radius: var(--radius-md);
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+
+.story-bank-intro svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: var(--color-primary);
+}
+
+.story-tag-filter {
+  display: flex;
+  gap: 6px;
+  padding: 0 16px 12px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.story-tag-filter::-webkit-scrollbar { display: none; }
+
+.story-tag-btn {
+  display: flex;
+  align-items: center;
+  padding: 5px 12px;
+  border-radius: var(--radius-full);
+  border: 1.5px solid var(--color-border);
+  background: var(--color-surface);
+  font-size: 12px;
+  font-weight: var(--font-medium);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all var(--duration-fast);
+}
+
+.story-tag-btn:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.story-tag-btn.active {
+  background: var(--color-primary-bg);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  font-weight: var(--font-semibold);
+}
+
+.story-card {
+  margin: 0 16px 10px;
+  padding: 14px 16px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: border-color var(--duration-fast), box-shadow var(--duration-fast);
+}
+
+.story-card:hover {
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-sm);
+}
+
+.story-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.story-card-title {
+  font-size: 14px;
+  font-weight: var(--font-semibold);
+  color: var(--color-text);
+  line-height: 1.3;
+}
+
+.story-card-preview {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+  margin-bottom: 8px;
+}
+
+.story-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+/* Story editor */
+
+.star-field-label {
+  font-size: 13px;
+  font-weight: var(--font-semibold);
+  color: var(--color-text);
+  display: block;
+}
+
+.star-field-hint {
+  display: block;
+  font-size: 11px;
+  color: var(--color-text-tertiary);
+  margin-top: 1px;
+  line-height: 1.4;
+}
+
+.story-tags-preview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 8px;
+  min-height: 4px;
+}
+
+/* Relevant stories on job detail */
+
+.relevant-story-item {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--color-border);
+  cursor: pointer;
+  transition: opacity var(--duration-fast);
+}
+
+.relevant-story-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.relevant-story-item:hover {
+  opacity: 0.8;
 }

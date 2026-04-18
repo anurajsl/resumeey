@@ -118,7 +118,7 @@ export const JobRepo = {
       coverLetter: data.coverLetter || null,
       optimizationResult: data.optimizationResult || null,
       notes: data.notes || '',
-      status: data.status || 'active',
+      status: data.status || 'draft',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
@@ -225,6 +225,60 @@ export const SettingsRepo = {
 /* ============================
    Audit Log
    ============================ */
+
+/* ============================
+   Story Repository
+   ============================ */
+
+export const StoryRepo = {
+  async create(data) {
+    const story = {
+      id: data.id || shortId(),
+      title: data.title || '',
+      situation: data.situation || '',
+      task: data.task || '',
+      action: data.action || '',
+      result: data.result || '',
+      tags: Array.isArray(data.tags) ? data.tags : [],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    await dbPut('stories', story);
+    return story;
+  },
+
+  async get(id) {
+    return dbGet('stories', id);
+  },
+
+  async getAll() {
+    const all = await dbGetAll('stories');
+    return all.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+  },
+
+  async getByTags(tags = []) {
+    if (!tags.length) return this.getAll();
+    const all = await this.getAll();
+    const lower = tags.map(t => t.toLowerCase());
+    return all.filter(s => s.tags.some(t => lower.includes(t.toLowerCase())));
+  },
+
+  async update(id, updates) {
+    const existing = await dbGet('stories', id);
+    if (!existing) throw new Error(`Story ${id} not found`);
+    const updated = { ...existing, ...updates, updatedAt: new Date().toISOString() };
+    await dbPut('stories', updated);
+    return updated;
+  },
+
+  async delete(id) {
+    return dbDelete('stories', id);
+  },
+
+  async clear() {
+    return dbClear('stories');
+  },
+};
 
 export const AuditRepo = {
   async log(type, data) {

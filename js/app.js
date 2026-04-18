@@ -6,6 +6,7 @@ import { events, EVENTS } from './events.js';
 import { openDB } from './db/database.js';
 import { SettingsRepo, ResumeRepo } from './db/repositories.js';
 import { PremiumService } from './services/premium-service.js';
+import { applyTheme } from './utils/theme.js';
 
 // Screens
 import { renderWelcome } from './screens/onboarding/welcome.js';
@@ -24,6 +25,8 @@ import { renderCoverLetter } from './screens/cover-letter/cover-letter.js';
 import { renderExportView } from './screens/export/export-view.js';
 import { renderSettings } from './screens/settings/settings.js';
 import { renderPremium } from './screens/premium/premium.js';
+import { renderStoryBank } from './screens/stories/story-bank.js';
+import { renderStoryEditor } from './screens/stories/story-editor.js';
 import { initCopilot } from './components/copilot.js';
 
 async function init() {
@@ -35,6 +38,9 @@ async function init() {
     await PremiumService.load();
     const prefs = await SettingsRepo.getPreferences();
     store.set('onboardingComplete', prefs.onboardingComplete);
+
+    // Apply saved theme preference immediately
+    applyTheme(prefs.theme || 'auto');
 
     // Register service worker
     if ('serviceWorker' in navigator) {
@@ -90,6 +96,9 @@ async function init() {
       }
     }
 
+    // PWA install prompt
+    initInstallPrompt();
+
   } catch (err) {
     console.error('App init failed:', err);
     document.body.innerHTML = `
@@ -134,6 +143,11 @@ function registerRoutes() {
   router.on('/settings', () => renderSettings());
   router.on('/premium', () => renderPremium());
 
+  // Story Bank
+  router.on('/stories/add', () => renderStoryEditor({}));
+  router.on('/stories/:id', (params) => renderStoryEditor(params));
+  router.on('/stories', () => renderStoryBank());
+
   // 404 — redirect to resume
   router.notFound((path) => {
     console.warn('Route not found:', path);
@@ -147,7 +161,7 @@ function isRouteActive(itemRoute, path) {
     (itemRoute === '/jobs' && (path === '/jobs' || path.startsWith('/jobs/'))) ||
     (itemRoute === '/match' && (path.startsWith('/match/') || path.startsWith('/optimize/') || path.startsWith('/ats/') || path.startsWith('/cover-letter/'))) ||
     (itemRoute === '/export' && path === '/export') ||
-    (itemRoute === '/settings' && (path === '/settings' || path === '/premium'));
+    (itemRoute === '/settings' && (path === '/settings' || path === '/premium' || path.startsWith('/stories')));
 }
 
 function setupBottomNav() {
@@ -216,6 +230,72 @@ function resetHeaderState() {
   if (headerLogo) headerLogo.style.display = 'flex';
 
   document.getElementById('header-actions').innerHTML = '';
+}
+
+function initInstallPrompt() {
+  const DISMISSED_KEY = 'pwa-install-dismissed';
+  if (localStorage.getItem(DISMISSED_KEY)) return;
+
+  let deferredPrompt = null;
+
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+
+    // Show banner after a short delay so it doesn't interrupt first load
+    setTimeout(() => {
+      if (localStorage.getItem(DISMISSED_KEY)) return;
+      showInstallBanner(() => {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then(() => {
+          deferredPrompt = null;
+          removeInstallBanner();
+          localStorage.setItem(DISMISSED_KEY, '1');
+        });
+      });
+    }, 3000);
+  });
+
+  // Hide banner once installed
+  window.addEventListener('appinstalled', () => {
+    removeInstallBanner();
+    localStorage.setItem(DISMISSED_KEY, '1');
+  });
+}
+
+function showInstallBanner(onInstall) {
+  if (document.getElementById('pwa-install-banner')) return;
+
+  const banner = document.createElement('div');
+  banner.id = 'pwa-install-banner';
+  banner.innerHTML = `
+    <div class="pwa-install-content">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      <div class="pwa-install-text">
+        <strong>Install Resumey</strong>
+        <span>Add to home screen for offline access</span>
+      </div>
+      <button class="btn btn-primary btn-sm" id="pwa-install-btn">Install</button>
+      <button class="btn-icon pwa-install-dismiss" id="pwa-install-dismiss" aria-label="Dismiss">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+  `;
+  document.body.appendChild(banner);
+
+  document.getElementById('pwa-install-btn').addEventListener('click', onInstall);
+  document.getElementById('pwa-install-dismiss').addEventListener('click', () => {
+    removeInstallBanner();
+    localStorage.setItem('pwa-install-dismissed', '1');
+  });
+}
+
+function removeInstallBanner() {
+  const banner = document.getElementById('pwa-install-banner');
+  if (banner) {
+    banner.classList.add('pwa-install-hide');
+    setTimeout(() => banner.remove(), 300);
+  }
 }
 
 // Start app when DOM ready

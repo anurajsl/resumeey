@@ -199,42 +199,53 @@ export async function renderExportView({ resumeId } = {}) {
 
 function previewClassic() {
   return `
-    <div style="padding:8px;font-size:5px;line-height:1.3">
-      <div style="text-align:center;border-bottom:1.5px solid #4A7C59;padding-bottom:4px;margin-bottom:4px">
-        <div style="font-weight:700;font-size:7px">FULL NAME</div>
-        <div style="color:#4A7C59;font-size:5px">Job Title</div>
-        <div style="color:#999;font-size:4px">email · phone · location</div>
+    <div style="padding:8px;font-size:5px;line-height:1.3;height:100%">
+      <div style="text-align:center;border-bottom:1.5px solid #4A7C59;padding-bottom:4px;margin-bottom:5px">
+        <div style="font-weight:700;font-size:7px;letter-spacing:-0.01em">FULL NAME</div>
+        <div style="color:#4A7C59;font-size:4.5px;font-weight:600;margin:1px 0">Job Title</div>
+        <div style="color:#999;font-size:3.5px">email · phone · location</div>
       </div>
-      <div style="color:#4A7C59;font-weight:700;font-size:4.5px;text-transform:uppercase;letter-spacing:0.04em;margin:3px 0 2px">EXPERIENCE</div>
-      ${[1,2].map(() => `<div style="margin-bottom:3px"><div style="font-weight:700;font-size:5px">Role Title</div><div style="font-size:4px;color:#666">Company · 2020–2022</div><div style="background:#eee;height:2px;border-radius:1px;margin-top:2px;width:80%"></div></div>`).join('')}
+      <div style="color:#4A7C59;font-weight:700;font-size:4px;text-transform:uppercase;letter-spacing:0.06em;border-bottom:1px solid #4A7C59;padding-bottom:1.5px;margin:4px 0 3px">EXPERIENCE</div>
+      ${[1,2].map(() => `<div style="margin-bottom:4px"><div style="display:flex;justify-content:space-between"><span style="font-weight:700;font-size:4.5px">Role Title</span><span style="font-size:3.5px;color:#999">2020–2022</span></div><div style="font-size:4px;color:#4A7C59">Company</div><div style="background:#eee;height:1.5px;border-radius:1px;margin-top:2px;width:85%"></div><div style="background:#eee;height:1.5px;border-radius:1px;margin-top:1.5px;width:70%"></div></div>`).join('')}
+      <div style="color:#4A7C59;font-weight:700;font-size:4px;text-transform:uppercase;letter-spacing:0.06em;border-bottom:1px solid #4A7C59;padding-bottom:1.5px;margin:4px 0 3px">SKILLS</div>
+      <div style="display:flex;flex-wrap:wrap;gap:2px">${[1,2,3,4].map(() => `<span style="background:#EEF5F1;color:#3A6347;border-radius:2px;padding:1px 4px;font-size:3.5px">Skill</span>`).join('')}</div>
     </div>`;
 }
 
 function previewModern() {
   return `
-    <div style="display:flex;height:100%;font-size:5px">
-      <div style="background:#4A7C59;width:40%;padding:8px;color:white">
-        <div style="font-weight:700;font-size:6px;margin-bottom:4px">FULL<br>NAME</div>
-        <div style="font-size:4px;opacity:0.8">Job Title</div>
-        <div style="margin-top:6px;font-size:4px;opacity:0.7">email</div>
-        <div style="font-size:4px;opacity:0.7">phone</div>
+    <div style="display:flex;height:100%;font-size:5px;overflow:hidden">
+      <div style="background:#2D4A38;width:38%;padding:8px 7px;color:white;flex-shrink:0">
+        <div style="font-weight:700;font-size:6px;line-height:1.2;margin-bottom:2px">FULL<br>NAME</div>
+        <div style="font-size:3.5px;opacity:0.7;margin-bottom:6px">Job Title</div>
+        <div style="font-size:3.5px;opacity:0.5;text-transform:uppercase;letter-spacing:0.08em;border-bottom:0.5px solid rgba(255,255,255,0.2);padding-bottom:2px;margin-bottom:3px">Contact</div>
+        <div style="font-size:3.5px;opacity:0.75;margin-bottom:1.5px">email@email.com</div>
+        <div style="font-size:3.5px;opacity:0.75;margin-bottom:5px">+1 234 567</div>
+        <div style="font-size:3.5px;opacity:0.5;text-transform:uppercase;letter-spacing:0.08em;border-bottom:0.5px solid rgba(255,255,255,0.2);padding-bottom:2px;margin-bottom:3px">Skills</div>
+        ${[1,2,3].map(() => `<div style="font-size:3.5px;opacity:0.75;margin-bottom:1.5px">Skill Name</div>`).join('')}
       </div>
-      <div style="flex:1;padding:8px">
-        <div style="font-weight:700;font-size:5px;color:#4A7C59;border-bottom:1px solid #eee;padding-bottom:2px;margin-bottom:4px">EXPERIENCE</div>
-        ${[1,2].map(() => `<div style="margin-bottom:3px"><div style="font-weight:700;font-size:4.5px">Role</div><div style="background:#eee;height:2px;border-radius:1px;margin-top:1px;width:75%"></div></div>`).join('')}
+      <div style="flex:1;padding:8px 7px">
+        <div style="font-size:4px;font-weight:700;color:#4A7C59;text-transform:uppercase;letter-spacing:0.06em;border-bottom:0.5px solid #eee;padding-bottom:1.5px;margin-bottom:3px">Experience</div>
+        ${[1,2].map(() => `<div style="margin-bottom:4px"><div style="display:flex;justify-content:space-between"><span style="font-weight:700;font-size:4px">Role Title</span><span style="font-size:3px;color:#999">2020–22</span></div><div style="font-size:3.5px;color:#4A7C59;margin-bottom:1.5px">Company</div><div style="background:#eee;height:1.5px;border-radius:1px;width:90%"></div><div style="background:#eee;height:1.5px;border-radius:1px;margin-top:1.5px;width:75%"></div></div>`).join('')}
+        <div style="font-size:4px;font-weight:700;color:#4A7C59;text-transform:uppercase;letter-spacing:0.06em;border-bottom:0.5px solid #eee;padding-bottom:1.5px;margin:4px 0 3px">Education</div>
+        <div style="font-weight:700;font-size:4px">BSc Computer Science</div>
+        <div style="font-size:3.5px;color:#4A7C59">University Name</div>
       </div>
     </div>`;
 }
 
 function previewMinimal() {
   return `
-    <div style="padding:8px;font-size:5px;line-height:1.3">
-      <div style="margin-bottom:5px">
-        <div style="font-weight:300;font-size:9px;letter-spacing:-0.02em">FULL NAME</div>
-        <div style="color:#999;font-size:4px;margin-top:1px">email · phone</div>
+    <div style="padding:8px;font-size:5px;line-height:1.3;height:100%">
+      <div style="margin-bottom:6px;border-bottom:0.5px solid #E8E8E8;padding-bottom:5px">
+        <div style="font-weight:300;font-size:10px;letter-spacing:-0.02em;color:#1A1A1A">Full Name</div>
+        <div style="font-size:3.5px;color:#999;margin-top:1.5px;font-weight:300">email · phone · location</div>
       </div>
-      <div style="font-size:4.5px;color:#999;text-transform:uppercase;letter-spacing:0.1em;margin:4px 0 2px">EXPERIENCE</div>
-      <div style="background:#eee;height:0.5px;margin-bottom:3px"></div>
-      ${[1,2].map(() => `<div style="margin-bottom:3px"><div style="font-weight:600;font-size:4.5px">Role Title</div><div style="background:#eee;height:2px;border-radius:1px;margin-top:1px;width:70%"></div></div>`).join('')}
+      <div style="font-size:3.5px;color:#AAAAAA;text-transform:uppercase;letter-spacing:0.12em;margin:4px 0 2px;font-weight:600">Experience</div>
+      <div style="background:#E8E8E8;height:0.5px;margin-bottom:3px"></div>
+      ${[1,2].map(() => `<div style="margin-bottom:4px"><div style="display:flex;justify-content:space-between"><span style="font-weight:600;font-size:4.5px">Role Title</span><span style="font-size:3px;color:#CCCCCC;font-weight:300">2020–2022</span></div><div style="font-size:3.5px;color:#888;margin-bottom:1.5px">Company · Location</div><div style="background:#eee;height:1.5px;border-radius:1px;width:88%"></div><div style="background:#eee;height:1.5px;border-radius:1px;margin-top:1.5px;width:72%"></div></div>`).join('')}
+      <div style="font-size:3.5px;color:#AAAAAA;text-transform:uppercase;letter-spacing:0.12em;margin:4px 0 2px;font-weight:600">Skills</div>
+      <div style="background:#E8E8E8;height:0.5px;margin-bottom:3px"></div>
+      <div style="font-size:3.5px;color:#666;font-weight:300">Skill · Skill · Skill · Skill · Skill</div>
     </div>`;
 }

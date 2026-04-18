@@ -104,9 +104,9 @@
   --sidebar-width: 280px;
 }
 
-/* Dark mode override */
+/* Dark mode — system preference */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --color-bg: #18171A;
     --color-bg-secondary: #211F24;
     --color-surface: #2A2830;
@@ -123,4 +123,42 @@
     --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.3);
     --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.4);
   }
+}
+
+/* Dark mode — manual override */
+[data-theme="dark"] {
+  --color-bg: #18171A;
+  --color-bg-secondary: #211F24;
+  --color-surface: #2A2830;
+  --color-surface-hover: #322F3A;
+  --color-border: rgba(255, 255, 255, 0.08);
+  --color-border-medium: rgba(255, 255, 255, 0.14);
+  --color-text: #F0EDE8;
+  --color-text-secondary: #A89F96;
+  --color-text-tertiary: #706860;
+  --color-primary-bg: #1E2E23;
+  --color-primary-bg-hover: #253529;
+  --color-gold-bg: #2A2416;
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+/* Light mode — manual override (force light even on dark-system devices) */
+[data-theme="light"] {
+  --color-bg: #FAF8F5;
+  --color-bg-secondary: #F3F0EB;
+  --color-surface: #FFFFFF;
+  --color-surface-hover: #F9F7F4;
+  --color-border: rgba(0, 0, 0, 0.07);
+  --color-border-medium: rgba(0, 0, 0, 0.12);
+  --color-text: #1A1A1A;
+  --color-text-secondary: #6B6860;
+  --color-text-tertiary: #9B9890;
+  --color-primary-bg: #EEF5F1;
+  --color-primary-bg-hover: #E3EFE8;
+  --color-gold-bg: #FBF6EC;
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.10);
 }

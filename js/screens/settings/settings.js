@@ -1,13 +1,14 @@
 /* Settings Screen */
 
 import { router } from '../../router.js';
-import { SettingsRepo, ResumeRepo, JobRepo } from '../../db/repositories.js';
+import { SettingsRepo, ResumeRepo, JobRepo, StoryRepo } from '../../db/repositories.js';
 import { PremiumService } from '../../services/premium-service.js';
 import { confirmModal } from '../../components/modal.js';
 import { toast } from '../../components/toast.js';
 import { clearEncryptionKey } from '../../utils/crypto.js';
 import { aiService } from '../../services/ai-service.js';
 import { AI_PROVIDER_LABELS } from '../../utils/constants.js';
+import { applyTheme } from '../../utils/theme.js';
 
 export async function renderSettings() {
   const container = document.getElementById('screen-container');
@@ -67,15 +68,34 @@ export async function renderSettings() {
       <!-- Appearance -->
       <h3 style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--color-text-secondary);margin-bottom:8px">Appearance</h3>
       <div class="settings-group" style="margin-bottom:20px">
-        <div class="settings-item">
+        <div class="settings-item" style="flex-wrap:wrap;gap:12px">
           <div class="settings-item-icon">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
           </div>
           <div class="settings-item-text">
             <div class="settings-item-title">Theme</div>
-            <div class="settings-item-subtitle">Follows system preference</div>
+            <div class="settings-item-subtitle" id="theme-subtitle">${prefs.theme === 'dark' ? 'Dark mode on' : prefs.theme === 'light' ? 'Light mode on' : 'Follows system preference'}</div>
           </div>
-          <span class="badge badge-neutral">Auto</span>
+          <div class="theme-toggle" id="theme-toggle">
+            <button class="theme-toggle-btn ${(!prefs.theme || prefs.theme === 'auto') ? 'active' : ''}" data-theme="auto">Auto</button>
+            <button class="theme-toggle-btn ${prefs.theme === 'light' ? 'active' : ''}" data-theme="light">Light</button>
+            <button class="theme-toggle-btn ${prefs.theme === 'dark' ? 'active' : ''}" data-theme="dark">Dark</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Interview Prep -->
+      <h3 style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--color-text-secondary);margin-bottom:8px">Interview Prep</h3>
+      <div class="settings-group" style="margin-bottom:20px">
+        <div class="settings-item" id="settings-story-bank">
+          <div class="settings-item-icon" style="background:var(--color-primary-bg)">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          </div>
+          <div class="settings-item-text">
+            <div class="settings-item-title">Story Bank</div>
+            <div class="settings-item-subtitle" id="story-bank-subtitle">Loading…</div>
+          </div>
+          <svg class="settings-item-right" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
         </div>
       </div>
 
@@ -130,13 +150,33 @@ export async function renderSettings() {
     }
   });
 
+  // Theme toggle
+  document.getElementById('theme-toggle').addEventListener('click', async (e) => {
+    const btn = e.target.closest('.theme-toggle-btn');
+    if (!btn) return;
+    const theme = btn.dataset.theme;
+    await SettingsRepo.setPreferences({ theme });
+    document.querySelectorAll('.theme-toggle-btn').forEach(b => b.classList.toggle('active', b.dataset.theme === theme));
+    const subtitle = document.getElementById('theme-subtitle');
+    if (subtitle) subtitle.textContent = theme === 'dark' ? 'Dark mode on' : theme === 'light' ? 'Light mode on' : 'Follows system preference';
+    applyTheme(theme);
+  });
+
   // Premium
   document.getElementById('settings-premium').addEventListener('click', () => router.navigate('/premium'));
 
+  // Story Bank — load count async then update subtitle
+  document.getElementById('settings-story-bank').addEventListener('click', () => router.navigate('/stories'));
+  StoryRepo.getAll().then(stories => {
+    const el = document.getElementById('story-bank-subtitle');
+    if (el) el.textContent = stories.length === 0 ? 'No stories yet — add STAR stories' : `${stories.length} stor${stories.length === 1 ? 'y' : 'ies'} saved`;
+  }).catch(() => {});
+
+
   // Export data
   document.getElementById('settings-export-data').addEventListener('click', async () => {
-    const [resumes, jobs] = await Promise.all([ResumeRepo.getAll(), JobRepo.getAll()]);
-    const data = { resumes, jobs, exportedAt: new Date().toISOString() };
+    const [resumes, jobs, stories] = await Promise.all([ResumeRepo.getAll(), JobRepo.getAll(), StoryRepo.getAll()]);
+    const data = { resumes, jobs, stories, exportedAt: new Date().toISOString() };
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -156,7 +196,7 @@ export async function renderSettings() {
       danger: true,
     });
     if (confirmed) {
-      await Promise.all([ResumeRepo.clear(), JobRepo.clear()]);
+      await Promise.all([ResumeRepo.clear(), JobRepo.clear(), StoryRepo.clear()]);
       toast.success('All data cleared');
       router.navigate('/welcome');
     }

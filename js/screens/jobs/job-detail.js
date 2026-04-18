@@ -1,11 +1,12 @@
 /* Job Detail Screen */
 
 import { router } from '../../router.js';
-import { JobRepo, ResumeRepo } from '../../db/repositories.js';
+import { JobRepo, ResumeRepo, StoryRepo } from '../../db/repositories.js';
 import { confirmModal } from '../../components/modal.js';
 import { toast } from '../../components/toast.js';
 import { timeAgo } from '../../utils/formatters.js';
 import { scoreBadge } from '../../components/score-ring.js';
+import { debounce } from '../../utils/debounce.js';
 
 export async function renderJobDetail({ id }) {
   const container = document.getElementById('screen-container');
@@ -34,6 +35,17 @@ export async function renderJobDetail({ id }) {
   const score = job.matchResult?.overallScore;
   const kws = job.keywords || {};
 
+  // Load resumes for version tracking
+  const master = await ResumeRepo.getMaster();
+  const tailored = job.tailoredResumeId ? await ResumeRepo.get(job.tailoredResumeId) : null;
+  const resumeOptions = [
+    ...(master ? [{ id: master.id, name: 'Master Resume' }] : []),
+    ...(tailored ? [{ id: tailored.id, name: tailored.metadata?.jobTitle ? `Tailored — ${tailored.metadata.jobTitle}` : (tailored.name || 'Tailored Resume') }] : []),
+  ];
+  const submittedResume = job.submittedResumeId
+    ? resumeOptions.find(r => r.id === job.submittedResumeId)
+    : null;
+
   container.innerHTML = `
     <div class="animate-fade-up" style="padding-bottom:24px">
       <!-- Job header -->
@@ -43,16 +55,21 @@ export async function renderJobDetail({ id }) {
             ${(job.company || '?').slice(0, 2).toUpperCase()}
           </div>
           <div style="flex:1">
-            <h2 style="font-size:20px;font-weight:700;color:var(--color-text);line-height:1.2">${job.title}</h2>
-            <p style="font-size:14px;color:var(--color-text-secondary);margin-top:2px">${job.company || ''}${job.location ? ` · ${job.location}` : ''}</p>
+            <h2 style="font-size:20px;font-weight:700;color:var(--color-text);line-height:1.2">${escHtml(job.title)}</h2>
+            <p style="font-size:14px;color:var(--color-text-secondary);margin-top:2px">${escHtml(job.company || '')}${job.location ? ` · ${escHtml(job.location)}` : ''}</p>
             <p style="font-size:11px;color:var(--color-text-tertiary);margin-top:4px">Added ${timeAgo(job.createdAt)}</p>
+            ${submittedResume ? `
+            <a id="submitted-resume-badge" href="javascript:void(0)" style="display:inline-flex;align-items:center;gap:4px;margin-top:5px;font-size:11px;font-weight:600;color:var(--color-primary);text-decoration:none">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>
+              Sent: ${escHtml(submittedResume.name)}
+            </a>` : '<div id="submitted-resume-badge" style="display:none"></div>'}
           </div>
           ${score != null ? scoreBadge(score).outerHTML : ''}
         </div>
 
         <!-- Application Status Tracker -->
         <div class="status-tracker" id="status-tracker">
-          ${renderStatusSteps(job.status || 'saved')}
+          ${renderStatusSteps(normaliseStatus(job.status))}
         </div>
       </div>
 
@@ -102,6 +119,86 @@ export async function renderJobDetail({ id }) {
         </div>
       </div>
 
+      <!-- Notes -->
+      <div style="padding:0 16px 16px">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              Notes
+            </span>
+            <span id="notes-saved-indicator" style="font-size:11px;color:var(--color-text-tertiary);opacity:0;transition:opacity 400ms"></span>
+          </div>
+          <div class="card-body" style="padding-top:0">
+            <textarea
+              id="job-notes-input"
+              class="form-textarea"
+              placeholder="Track interview prep notes, salary expectations, contacts, deadlines…"
+              style="min-height:100px;font-size:13px;border:none;padding:0;resize:vertical;box-shadow:none"
+            >${escHtml(job.notes || '')}</textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- Application Details -->
+      <div style="padding:0 16px 16px">
+        <div class="card">
+          <div class="card-header" id="app-details-header" style="cursor:pointer">
+            <span class="card-title">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              Application Details
+            </span>
+            <svg id="app-details-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="transition:transform 200ms"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+          <div id="app-details-body" class="card-body" style="display:none;padding-top:4px">
+            ${job.appliedAt ? `<p style="font-size:11px;color:var(--color-text-tertiary);margin-bottom:12px">Applied ${timeAgo(job.appliedAt)}</p>` : ''}
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+              <div class="form-group" style="margin:0">
+                <label class="form-label" style="font-size:11px">Deadline</label>
+                <input type="date" id="app-deadline" class="form-input" style="font-size:13px" value="${escHtml(job.deadline || '')}">
+              </div>
+              <div class="form-group" style="margin:0">
+                <label class="form-label" style="font-size:11px">Salary (expected)</label>
+                <input type="text" id="app-salary" class="form-input" style="font-size:13px" placeholder="e.g. $120k" value="${escHtml(job.salary || '')}">
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px">
+              <div class="form-group" style="margin:0">
+                <label class="form-label" style="font-size:11px">Recruiter name</label>
+                <input type="text" id="app-recruiter-name" class="form-input" style="font-size:13px" placeholder="Jane Smith" value="${escHtml(job.recruiterName || '')}">
+              </div>
+              <div class="form-group" style="margin:0">
+                <label class="form-label" style="font-size:11px">Recruiter email</label>
+                <input type="email" id="app-recruiter-email" class="form-input" style="font-size:13px" placeholder="jane@company.com" value="${escHtml(job.recruiterEmail || '')}">
+              </div>
+            </div>
+            ${resumeOptions.length > 0 ? `
+            <div class="form-group" style="margin:10px 0 0">
+              <label class="form-label" style="font-size:11px">Version sent</label>
+              <select id="app-submitted-resume" class="form-input" style="font-size:13px">
+                <option value="">— not specified —</option>
+                ${resumeOptions.map(r => `<option value="${r.id}" ${job.submittedResumeId === r.id ? 'selected' : ''}>${escHtml(r.name)}</option>`).join('')}
+              </select>
+            </div>` : ''}
+            <span id="app-details-saved" style="font-size:11px;color:var(--color-text-tertiary);opacity:0;transition:opacity 400ms;display:block;margin-top:8px">Saved</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Relevant Stories -->
+      <div id="relevant-stories-section" style="padding:0 16px 16px;display:none">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              Relevant Stories
+            </span>
+            <button class="btn-link" id="btn-all-stories" style="font-size:11px">All Stories</button>
+          </div>
+          <div class="card-body" style="padding-top:4px" id="relevant-stories-list"></div>
+        </div>
+      </div>
+
       <!-- Danger zone -->
       <div style="padding:0 16px">
         <button class="btn btn-ghost" id="btn-delete-job" style="color:var(--color-error);width:100%">
@@ -112,12 +209,86 @@ export async function renderJobDetail({ id }) {
     </div>
   `;
 
+  // Notes auto-save
+  const saveNotes = debounce(async (value) => {
+    await JobRepo.update(id, { notes: value });
+    const indicator = document.getElementById('notes-saved-indicator');
+    if (indicator) {
+      indicator.textContent = 'Saved';
+      indicator.style.opacity = '1';
+      setTimeout(() => { indicator.style.opacity = '0'; }, 1500);
+    }
+  }, 600);
+
+  document.getElementById('job-notes-input')?.addEventListener('input', (e) => {
+    saveNotes(e.target.value);
+  });
+
+  // Application details toggle
+  document.getElementById('app-details-header').addEventListener('click', () => {
+    const body = document.getElementById('app-details-body');
+    const chevron = document.getElementById('app-details-chevron');
+    const isOpen = body.style.display !== 'none';
+    body.style.display = isOpen ? 'none' : '';
+    chevron.style.transform = isOpen ? '' : 'rotate(180deg)';
+  });
+
+  // Application details auto-save
+  const saveAppDetails = debounce(async () => {
+    await JobRepo.update(id, {
+      deadline: document.getElementById('app-deadline')?.value || '',
+      salary: document.getElementById('app-salary')?.value || '',
+      recruiterName: document.getElementById('app-recruiter-name')?.value || '',
+      recruiterEmail: document.getElementById('app-recruiter-email')?.value || '',
+    });
+    const ind = document.getElementById('app-details-saved');
+    if (ind) { ind.style.opacity = '1'; setTimeout(() => { ind.style.opacity = '0'; }, 1500); }
+  }, 600);
+
+  ['app-deadline', 'app-salary', 'app-recruiter-name', 'app-recruiter-email'].forEach(fieldId => {
+    document.getElementById(fieldId)?.addEventListener('input', saveAppDetails);
+  });
+
+  // Version sent — immediate save on change + update header badge
+  document.getElementById('app-submitted-resume')?.addEventListener('change', async (e) => {
+    const resumeId = e.target.value || null;
+    await JobRepo.update(id, { submittedResumeId: resumeId });
+    job.submittedResumeId = resumeId;
+    updateSubmittedBadge(resumeId, resumeOptions);
+  });
+
+  // Submitted resume badge click → navigate to that resume
+  document.getElementById('submitted-resume-badge')?.addEventListener('click', () => {
+    if (!job.submittedResumeId) return;
+    const isTailored = tailored && job.submittedResumeId === tailored.id;
+    router.navigate(isTailored ? `/resume/tailored/${job.submittedResumeId}` : '/resume');
+  });
+
   // Status tracker
   document.getElementById('status-tracker').addEventListener('click', async (e) => {
     const btn = e.target.closest('.status-step');
     if (!btn) return;
     const newStatus = btn.dataset.status;
-    await JobRepo.update(id, { status: newStatus });
+    const updates = { status: newStatus };
+    // Auto-stamp applied date on first transition to applied
+    if (newStatus === 'applied' && !job.appliedAt) {
+      updates.appliedAt = new Date().toISOString();
+      job.appliedAt = updates.appliedAt;
+    }
+    // Auto-fill submitted resume on first transition to applied
+    if (newStatus === 'applied' && !job.submittedResumeId && resumeOptions.length > 0) {
+      // Prefer tailored resume for this job, else master
+      const preferred = tailored ? tailored.id : (master ? master.id : null);
+      if (preferred) {
+        updates.submittedResumeId = preferred;
+        job.submittedResumeId = preferred;
+        const sel = document.getElementById('app-submitted-resume');
+        if (sel) sel.value = preferred;
+        updateSubmittedBadge(preferred, resumeOptions);
+      }
+    }
+    await JobRepo.update(id, updates);
+    job.status = newStatus;
     document.getElementById('status-tracker').innerHTML = renderStatusSteps(newStatus);
     toast.info(`Status: ${STATUS_LABELS[newStatus]}`);
   });
@@ -196,9 +367,79 @@ export async function renderJobDetail({ id }) {
       router.navigate('/jobs');
     }
   });
+
+  // Relevant stories — load async, show if matches found
+  document.getElementById('btn-all-stories')?.addEventListener('click', () => router.navigate('/stories'));
+  loadRelevantStories(job);
+}
+
+function updateSubmittedBadge(resumeId, resumeOptions) {
+  const badge = document.getElementById('submitted-resume-badge');
+  if (!badge) return;
+  const resume = resumeOptions.find(r => r.id === resumeId);
+  if (resume) {
+    badge.style.display = 'inline-flex';
+    badge.innerHTML = `
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>
+      Sent: ${escHtml(resume.name)}`;
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+async function loadRelevantStories(job) {
+  const section = document.getElementById('relevant-stories-section');
+  const listEl = document.getElementById('relevant-stories-list');
+  if (!section || !listEl) return;
+
+  // Build tag pool from job keywords
+  const kws = job.keywords || {};
+  const jobTags = [
+    ...(kws.required || []),
+    ...(kws.skills || []),
+    ...(kws.preferred || []),
+    ...(kws.softSkills || []),
+  ].map(t => t.toLowerCase());
+
+  const allStories = await StoryRepo.getAll();
+  if (!allStories.length) return;
+
+  // Score by tag overlap
+  const scored = allStories
+    .map(s => {
+      const storyTags = s.tags.map(t => t.toLowerCase());
+      const overlap = storyTags.filter(t => jobTags.some(jt => jt.includes(t) || t.includes(jt))).length;
+      return { story: s, overlap };
+    })
+    .filter(({ overlap }) => overlap > 0)
+    .sort((a, b) => b.overlap - a.overlap)
+    .slice(0, 3);
+
+  if (!scored.length) return;
+
+  section.style.display = '';
+  listEl.innerHTML = scored.map(({ story }) => `
+    <div class="relevant-story-item" data-story-id="${story.id}">
+      <div style="font-size:13px;font-weight:600;color:var(--color-text)">${escHtml(story.title || 'Untitled story')}</div>
+      ${story.result ? `<div style="font-size:12px;color:var(--color-text-secondary);margin-top:2px;line-height:1.4">${escHtml(story.result.slice(0, 80))}${story.result.length > 80 ? '…' : ''}</div>` : ''}
+      <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px">
+        ${story.tags.map(t => `<span class="tag tag-neutral" style="font-size:10px">${escHtml(t)}</span>`).join('')}
+      </div>
+    </div>
+  `).join('');
+
+  listEl.addEventListener('click', (e) => {
+    const item = e.target.closest('.relevant-story-item');
+    if (item) router.navigate(`/stories/${item.dataset.storyId}`);
+  });
+}
+
+function escHtml(s) {
+  return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
 const STATUS_LABELS = {
+  draft: 'Draft',
   saved: 'Saved',
   applied: 'Applied',
   interview: 'Interview',
@@ -206,7 +447,12 @@ const STATUS_LABELS = {
   rejected: 'Rejected',
 };
 
-const STATUS_ORDER = ['saved', 'applied', 'interview', 'offer'];
+// Normalise legacy 'active' status (pre-draft era)
+function normaliseStatus(status) {
+  return status === 'active' ? 'saved' : (status || 'draft');
+}
+
+const STATUS_ORDER = ['draft', 'saved', 'applied', 'interview', 'offer'];
 
 function renderStatusSteps(current) {
   const isRejected = current === 'rejected';
