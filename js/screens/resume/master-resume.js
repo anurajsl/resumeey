@@ -33,6 +33,16 @@ export async function renderMasterResume() {
   }
 
   renderResume(container, resume);
+
+  // Load tailored count async — non-blocking
+  ResumeRepo.getTailored(resume.id).then(tailored => {
+    const el = document.getElementById('tailored-versions-banner');
+    if (!el) return;
+    if (tailored.length === 0) { el.style.display = 'none'; return; }
+    el.style.display = '';
+    el.querySelector('#tailored-count-text').textContent =
+      `${tailored.length} tailored version${tailored.length === 1 ? '' : 's'} across your jobs`;
+  }).catch(() => {});
 }
 
 function renderResume(container, resume) {
@@ -58,6 +68,15 @@ function renderResume(container, resume) {
           ${contact.phone ? `<div class="resume-contact-chip"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13.4 19.79 19.79 0 0 1 1.61 4.82 2 2 0 0 1 3.58 2.64h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 10.17a16 16 0 0 0 6.29 6.29l1.59-1.59a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7a2 2 0 0 1 1.72 2.02z"/></svg>${contact.phone}</div>` : ''}
           ${contact.location ? `<div class="resume-contact-chip"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>${contact.location}</div>` : ''}
         </div>` : ''}
+      </div>
+
+      <!-- Tailored versions banner -->
+      <div id="tailored-versions-banner" style="display:none;margin:0 16px 12px;padding:10px 14px;background:var(--color-primary-bg);border-radius:10px;align-items:center;justify-content:space-between;cursor:pointer">
+        <div style="display:flex;align-items:center;gap:8px">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          <span id="tailored-count-text" style="font-size:13px;font-weight:600;color:var(--color-primary)">…</span>
+        </div>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
       </div>
 
       <!-- Quick actions -->
@@ -94,6 +113,8 @@ function renderResume(container, resume) {
   // Bind actions
   document.getElementById('btn-edit-resume').addEventListener('click', () =>
     router.navigate('/resume/edit/contact'));
+  document.getElementById('tailored-versions-banner').addEventListener('click', () =>
+    router.navigate('/jobs'));
   document.getElementById('btn-target-job').addEventListener('click', () =>
     router.navigate('/jobs/add'));
   document.getElementById('btn-export-resume').addEventListener('click', () =>
